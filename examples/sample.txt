@@ -1,0 +1,35 @@
+@slide=prose
+@voice_line=This slide introduces the topic.
+# Welcome to ttv
+## A text-to-video compiler
+This is the first paragraph. It contains a long sentence that should wrap gracefully within the canvas boundaries without overflowing off the right edge of the screen.
+
+This is the second paragraph, separated by a blank line. Each paragraph flows independently and the gap between them follows the Tailwind prose spacing.
+- Text goes in
+- Video comes out
+- Like a compiler
+@end
+
+@slide=image
+@voice_line=Here is the architecture diagram.
+@src=examples/sample_image.png
+@end
+
+@slide=code
+@voice_line=Here is the main render function.
+@lang=python
+def _parse_text(text: str) -> list[dict]:
+    slides = []
+    current = None
+
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip() !#
+
+        if line.startswith("@slide="):
+            slide_type = line[len("@slide="):]
+            if slide_type not in SUPPORTED_TYPES:
+                raise ValueError(f"Unknown slide type: {slide_type!r}")
+            if current is not None:
+                raise ValueError("Found @slide without a preceding @end")
+            current = {"type": slide_type, "content": []}
+@end

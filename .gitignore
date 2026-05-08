@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.png
+*.wav
+*.mp4
+concat.txt
