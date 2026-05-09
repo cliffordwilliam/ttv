@@ -1,36 +1,50 @@
 import tempfile
+import threading
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, Future, as_completed
+from concurrent.futures import ThreadPoolExecutor, Future
 from parser import parse
 from slides import make_slide
-from audio import synthesize
 from stitch import stitch_slide, concatenate
+from schemas import SlideData
+from voice import KokoroProvider
 
 
-def _render_slide(slide_data: dict, img_path: Path) -> None:
+def _render_slide(slide_data: SlideData, img_path: Path) -> None:
     make_slide(slide_data).render().save(img_path)
 
 
-def _synthesize_slide(slide_data: dict, wav_path: Path) -> None:
-    synthesize(slide_data.get("voice_line", ""), wav_path)
+def _synthesize_slide(
+    slide_data: SlideData, wav_path: Path, provider: KokoroProvider
+) -> float:
+    return provider.synthesize(slide_data.voice_line, wav_path)
 
 
 def _stitch_when_ready(
-    render_fut: Future, audio_fut: Future,
-    img_path: Path, wav_path: Path, mp4_path: Path,
-    label: str,
+    render_fut: Future,
+    img_path: Path, duration: float, mp4_path: Path,
+    audio_path: Path | None = None,
 ) -> None:
     render_fut.result()
-    audio_fut.result()
-    print(f"  stitching {label}...")
-    stitch_slide(img_path, wav_path, mp4_path)
+    stitch_slide(img_path, duration, mp4_path, audio_path)
 
 
-def run(input_path: str | Path) -> Path:
-    input_path = Path(input_path).resolve()
+def run(path: Path, voice: KokoroProvider | None = None) -> Path:
+    input_path = path.resolve()
     output_path = input_path.with_suffix(".mp4")
     slides = parse(input_path)
     n = len(slides)
+    steps = n * 3 if voice else n * 2
+    done = 0
+    lock = threading.Lock()
+
+    def _progress(_: Future) -> None:
+        nonlocal done
+        with lock:
+            done += 1
+            filled = int(done / steps * 30)
+            bar = "█" * filled + "░" * (30 - filled)
+            end = "\n" if done == steps else "\r"
+            print(f"[{bar}] {done}/{steps}", end=end, flush=True)
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
@@ -48,28 +62,33 @@ def run(input_path: str | Path) -> Path:
                 render_pool.submit(_render_slide, slides[i], img_paths[i])
                 for i in range(n)
             ]
-            audio_futs = [
-                audio_pool.submit(_synthesize_slide, slides[i], wav_paths[i])
-                for i in range(n)
-            ]
-            stitch_futs = [
-                stitch_pool.submit(
-                    _stitch_when_ready,
-                    render_futs[i], audio_futs[i],
-                    img_paths[i], wav_paths[i], mp4_paths[i],
-                    f"slide {i + 1}/{n}",
-                )
-                for i in range(n)
-            ]
 
-            render_idx = {f: i for i, f in enumerate(render_futs)}
-            audio_idx  = {f: i for i, f in enumerate(audio_futs)}
+            if voice:
+                audio_futs = [
+                    audio_pool.submit(_synthesize_slide, slides[i], wav_paths[i], voice)
+                    for i in range(n)
+                ]
+                for f in audio_futs:
+                    f.add_done_callback(_progress)
+            else:
+                audio_futs = [None] * n
 
-            for f in as_completed(render_idx):
-                print(f"  render done: slide {render_idx[f] + 1}/{n}")
+            def _make_stitch_fut(i: int) -> Future:
+                if voice:
+                    def task():
+                        duration = audio_futs[i].result()
+                        render_futs[i].result()
+                        stitch_slide(img_paths[i], duration, mp4_paths[i], wav_paths[i])
+                else:
+                    def task():
+                        render_futs[i].result()
+                        stitch_slide(img_paths[i], slides[i].duration, mp4_paths[i])
+                return stitch_pool.submit(task)
 
-            for f in as_completed(audio_idx):
-                print(f"  audio done:  slide {audio_idx[f] + 1}/{n}")
+            stitch_futs = [_make_stitch_fut(i) for i in range(n)]
+
+            for f in render_futs + stitch_futs:
+                f.add_done_callback(_progress)
 
             for f in stitch_futs:
                 f.result()

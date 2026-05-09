@@ -6,10 +6,25 @@ Takes a structured `.txt` file and compiles it into an `.mp4`. Text in, video ou
 
 These must be installed and available on your PATH before running ttv:
 
-- **Piper TTS** — voice synthesis. Install with `uv tool install piper-tts`.
 - **FFmpeg** — video encoding and concatenation. Install via your package manager (e.g. `sudo pacman -S ffmpeg`).
 
-Voice model files are expected in `~/.local/share/piper-voices/`. The model in use is configured via `VOICE_MODEL` in `config.py`.
+## Voice support
+
+Voice is optional. ttv has no built-in TTS — it talks to a [Kokoro FastAPI](https://github.com/remsky/Kokoro-FastAPI) instance over HTTP.
+
+**Without voice** — each slide must declare its screen time explicitly:
+
+```
+@duration=5
+```
+
+**With voice** — point ttv at a running Kokoro container via the `KOKORO_URL` env var:
+
+```bash
+KOKORO_URL=http://localhost:8880 uv run python ttv.py my_video.txt
+```
+
+When Kokoro is active, slide duration is derived from the synthesized audio and `@duration` is ignored. When it is not, `@duration` is used as-is. Either way, a configurable pause is added before and after the audio/duration (default 0.6 s each, set via `PAUSE_BEFORE_S` / `PAUSE_AFTER_S` in `config.py`).
 
 ## Python dependencies
 

@@ -1,6 +1,7 @@
 import re
 from PIL import Image, ImageDraw, ImageFont
 from slides.base import BaseSlide
+from schemas import ProseData
 from util.fonts import load_font
 from config import (
     FONT_REGULAR, FONT_SEMIBOLD, FONT_BOLD, FONT_EXTRABOLD,
@@ -44,6 +45,10 @@ def _draw_wrapped(draw, text, font, color, x, y, max_width, line_height) -> int:
 
 
 class ProseSlide(BaseSlide):
+    def __init__(self, data: ProseData):
+        super().__init__(data)
+        self.data: ProseData = data
+
     def render(self) -> Image.Image:
         img = self._blank_canvas()
         draw = ImageDraw.Draw(img)
@@ -71,9 +76,9 @@ class ProseSlide(BaseSlide):
         def _is_heading(s):
             return s.startswith("# ") or s.startswith("## ") or s.startswith("### ")
 
-        for i, line in enumerate(self.content):
+        for i, line in enumerate(self.data.content):
             is_list     = _is_list_item(line)
-            prev        = self.content[i - 1] if i > 0 else ""
+            prev        = self.data.content[i - 1] if i > 0 else ""
             prev_is_list    = _is_list_item(prev)
             prev_is_heading = _is_heading(prev)
 

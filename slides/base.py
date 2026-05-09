@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from PIL import Image
 from config import RESOLUTION, BACKGROUND_COLOR
+from schemas import SlideData
 
 
 class BaseSlide(ABC):
-    def __init__(self, data: dict):
-        self.voice_line: str = data.get("voice_line", "")
-        self.content: list[str] = data.get("content", [])
+    def __init__(self, data: SlideData):
         self.data = data
 
     @abstractmethod

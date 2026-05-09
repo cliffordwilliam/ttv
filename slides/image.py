@@ -1,12 +1,17 @@
 from PIL import Image
 from pathlib import Path
 from slides.base import BaseSlide
+from schemas import ImageData
 from config import RESOLUTION
 
 
 class ImageSlide(BaseSlide):
+    def __init__(self, data: ImageData):
+        super().__init__(data)
+        self.data: ImageData = data
+
     def render(self) -> Image.Image:
-        src = self.data.get("src", "")
+        src = self.data.src
         path = Path(src)
 
         if not path.exists():

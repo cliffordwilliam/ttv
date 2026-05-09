@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw
 from pygments.lexers import get_lexer_by_name, TextLexer
 from pygments.token import Token
 from slides.base import BaseSlide
+from schemas import CodeData
 from util.fonts import load_font
 from config import (
     FONT_MONO, FONT_MONO_BOLD,
@@ -73,15 +74,19 @@ def _rounded_rect(draw: ImageDraw.ImageDraw, box: tuple, radius: int, fill: tupl
 
 
 class CodeSlide(BaseSlide):
+    def __init__(self, data: CodeData):
+        super().__init__(data)
+        self.data: CodeData = data
+
     def render(self) -> Image.Image:
         img = self._blank_canvas()
         draw = ImageDraw.Draw(img)
 
-        lang = self.data.get("lang", "text")
+        lang = self.data.lang
         font = load_font(FONT_MONO, CODE_SIZE_BODY)
         gutter_font = load_font(FONT_MONO, CODE_SIZE_BODY)
 
-        raw_lines = self.content
+        raw_lines = self.data.content
         highlighted = [line.endswith(HIGHLIGHT_MARKER) for line in raw_lines]
         clean_lines = [
             line[: -len(HIGHLIGHT_MARKER)].rstrip() if hl else line

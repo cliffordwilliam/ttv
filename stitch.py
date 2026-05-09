@@ -1,35 +1,35 @@
 import subprocess
 from pathlib import Path
-from audio import duration_seconds
-from config import FPS
+from config import FPS, PAUSE_BEFORE_S, PAUSE_AFTER_S
 
 
-def stitch_slide(image_path: str | Path, audio_path: str | Path, output_path: str | Path) -> None:
+def stitch_slide(
+    image_path: str | Path,
+    duration: float,
+    output_path: str | Path,
+    audio_path: str | Path | None = None,
+) -> None:
     image_path = Path(image_path)
-    audio_path = Path(audio_path)
     output_path = Path(output_path)
 
-    duration = duration_seconds(audio_path)
-    fade_out_start = max(0.0, duration - 0.5)
-
+    total = PAUSE_BEFORE_S + duration + PAUSE_AFTER_S
+    fade_out_start = max(0.0, total - 0.5)
     vf = f"fade=in:0:15,fade=out:st={fade_out_start:.3f}:d=0.5"
 
-    result = subprocess.run(
-        [
-            "ffmpeg", "-y",
-            "-loop", "1", "-i", str(image_path),
-            "-i", str(audio_path),
-            "-c:v", "libx264", "-tune", "stillimage",
-            "-c:a", "aac",
-            "-vf", vf,
-            "-r", str(FPS),
-            "-shortest",
-            str(output_path),
-        ],
-        stdin=subprocess.DEVNULL,
-        capture_output=True,
-        text=True,
-    )
+    delay_ms = int(PAUSE_BEFORE_S * 1000)
+    cmd = ["ffmpeg", "-y", "-loop", "1", "-i", str(image_path)]
+    if audio_path:
+        cmd += ["-i", str(audio_path)]
+        cmd += [
+            "-filter_complex", f"[1:a]adelay={delay_ms}|{delay_ms}[a]",
+            "-map", "0:v", "-map", "[a]",
+            "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac",
+        ]
+    else:
+        cmd += ["-c:v", "libx264", "-tune", "stillimage"]
+    cmd += ["-vf", vf, "-r", str(FPS), "-t", f"{total:.3f}", str(output_path)]
+
+    result = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True, text=True)
 
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg stitch failed:\n{result.stderr[-2000:]}")

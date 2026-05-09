@@ -1,5 +1,4 @@
 @slide=prose
-@voice_line=This slide introduces the topic.
 @duration=6
 # Welcome to ttv
 ## A text-to-video compiler
@@ -12,13 +11,11 @@ This is the second paragraph, separated by a blank line. Each paragraph flows in
 @end
 
 @slide=image
-@voice_line=Here is the architecture diagram.
 @duration=4
 @src=examples/sample_image.png
 @end
 
 @slide=code
-@voice_line=Here is the main render function.
 @duration=8
 @lang=python
 def _parse_text(text: str) -> list[dict]:

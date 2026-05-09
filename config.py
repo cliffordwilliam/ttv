@@ -1,7 +1,5 @@
-VOICE_MODEL_DIR  = "/home/clif/.local/share/piper-voices"
-VOICE_MODEL      = "en_US-lessac-low"
-PAUSE_BEFORE_MS = 600
-PAUSE_AFTER_MS = 600
+PAUSE_BEFORE_S  = 0.6
+PAUSE_AFTER_S   = 0.6
 RESOLUTION = (1920, 1080)
 FPS = 60
 
