@@ -3,6 +3,9 @@ PAUSE_AFTER_S   = 0.6
 RESOLUTION = (1920, 1080)
 FPS = 60
 
+# --- Loading bar ---
+LOADING_BAR_UNIT_WIDTH = 30
+
 # --- Slide canvas ---
 BACKGROUND_COLOR = (18, 18, 18)
 
