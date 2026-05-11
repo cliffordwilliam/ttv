@@ -1,8 +1,10 @@
-from PIL import Image
 from pathlib import Path
-from slides.base import BaseSlide
-from schemas import ImageData
+
+from PIL import Image
+
 from config import RESOLUTION
+from schemas import ImageData
+from slides.base import BaseSlide
 
 
 class ImageSlide(BaseSlide):
@@ -29,7 +31,7 @@ def _cover(img: Image.Image, size: tuple) -> Image.Image:
     new_w = round(src_w * scale)
     new_h = round(src_h * scale)
 
-    img = img.resize((new_w, new_h), Image.LANCZOS)
+    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
     left = (new_w - target_w) // 2
     top = (new_h - target_h) // 2

@@ -1,25 +1,48 @@
 import re
+
 from PIL import Image, ImageDraw, ImageFont
-from slides.base import BaseSlide
-from schemas import ProseData
-from util.fonts import load_font
+
 from config import (
-    FONT_REGULAR, FONT_SEMIBOLD, FONT_BOLD, FONT_EXTRABOLD,
-    PROSE_SIZE_H1, PROSE_SIZE_H2, PROSE_SIZE_H3, PROSE_SIZE_BODY,
-    PROSE_LINE_HEIGHT_BODY, PROSE_LINE_HEIGHT_H1, PROSE_LINE_HEIGHT_H2, PROSE_LINE_HEIGHT_H3,
-    PROSE_COLOR_H1, PROSE_COLOR_H2, PROSE_COLOR_H3, PROSE_COLOR_BODY, PROSE_COLOR_BULLET,
-    PROSE_PAD_X, PROSE_PAD_Y, PROSE_BULLET_INDENT, PROSE_PARA_GAP,
+    FONT_BOLD,
+    FONT_EXTRABOLD,
+    FONT_REGULAR,
+    FONT_SEMIBOLD,
+    PROSE_BULLET_INDENT,
+    PROSE_COLOR_BODY,
+    PROSE_COLOR_BULLET,
+    PROSE_COLOR_H1,
+    PROSE_COLOR_H2,
+    PROSE_COLOR_H3,
     PROSE_H1_MARGIN_BOTTOM,
-    PROSE_H2_MARGIN_TOP, PROSE_H2_MARGIN_BOTTOM,
-    PROSE_H3_MARGIN_TOP, PROSE_H3_MARGIN_BOTTOM,
-    PROSE_LIST_ITEM_GAP, PROSE_LIST_MARGIN,
+    PROSE_H2_MARGIN_BOTTOM,
+    PROSE_H2_MARGIN_TOP,
+    PROSE_H3_MARGIN_BOTTOM,
+    PROSE_H3_MARGIN_TOP,
+    PROSE_LINE_HEIGHT_BODY,
+    PROSE_LINE_HEIGHT_H1,
+    PROSE_LINE_HEIGHT_H2,
+    PROSE_LINE_HEIGHT_H3,
+    PROSE_LIST_ITEM_GAP,
+    PROSE_LIST_MARGIN,
+    PROSE_PAD_X,
+    PROSE_PAD_Y,
+    PROSE_PARA_GAP,
+    PROSE_SIZE_BODY,
+    PROSE_SIZE_H1,
+    PROSE_SIZE_H2,
+    PROSE_SIZE_H3,
     RESOLUTION,
 )
+from schemas import ProseData
+from slides.base import BaseSlide
+from util.fonts import load_font
 
 MAX_TEXT_WIDTH = RESOLUTION[0] - PROSE_PAD_X * 2
 
 
-def _wrap(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
+def _wrap(
+    draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: int
+) -> list[str]:
     words = text.split()
     lines, current = [], []
     for word in words:
@@ -54,16 +77,16 @@ class ProseSlide(BaseSlide):
         draw = ImageDraw.Draw(img)
 
         fonts = {
-            "h1":   load_font(FONT_EXTRABOLD, PROSE_SIZE_H1),   # weight 800
-            "h2":   load_font(FONT_BOLD,      PROSE_SIZE_H2),   # weight 700
-            "h3":   load_font(FONT_SEMIBOLD,  PROSE_SIZE_H3),   # weight 600
-            "body": load_font(FONT_REGULAR,   PROSE_SIZE_BODY), # weight 400
+            "h1": load_font(FONT_EXTRABOLD, PROSE_SIZE_H1),  # weight 800
+            "h2": load_font(FONT_BOLD, PROSE_SIZE_H2),  # weight 700
+            "h3": load_font(FONT_SEMIBOLD, PROSE_SIZE_H3),  # weight 600
+            "body": load_font(FONT_REGULAR, PROSE_SIZE_BODY),  # weight 400
         }
 
         lh_body = int(PROSE_SIZE_BODY * PROSE_LINE_HEIGHT_BODY)
-        lh_h1   = int(PROSE_SIZE_H1   * PROSE_LINE_HEIGHT_H1)
-        lh_h2   = int(PROSE_SIZE_H2   * PROSE_LINE_HEIGHT_H2)
-        lh_h3   = int(PROSE_SIZE_H3   * PROSE_LINE_HEIGHT_H3)
+        lh_h1 = int(PROSE_SIZE_H1 * PROSE_LINE_HEIGHT_H1)
+        lh_h2 = int(PROSE_SIZE_H2 * PROSE_LINE_HEIGHT_H2)
+        lh_h3 = int(PROSE_SIZE_H3 * PROSE_LINE_HEIGHT_H3)
 
         x = PROSE_PAD_X
         y = PROSE_PAD_Y
@@ -77,9 +100,9 @@ class ProseSlide(BaseSlide):
             return s.startswith("# ") or s.startswith("## ") or s.startswith("### ")
 
         for i, line in enumerate(self.data.content):
-            is_list     = _is_list_item(line)
-            prev        = self.data.content[i - 1] if i > 0 else ""
-            prev_is_list    = _is_list_item(prev)
+            is_list = _is_list_item(line)
+            prev = self.data.content[i - 1] if i > 0 else ""
+            prev_is_list = _is_list_item(prev)
             prev_is_heading = _is_heading(prev)
 
             # list block margin — before first item and after last item
@@ -95,30 +118,83 @@ class ProseSlide(BaseSlide):
             if line.startswith("### "):
                 if not prev_is_heading:
                     y += PROSE_H3_MARGIN_TOP
-                y = _draw_wrapped(draw, line[4:], fonts["h3"], PROSE_COLOR_H3, x, y, MAX_TEXT_WIDTH, lh_h3)
+                y = _draw_wrapped(
+                    draw,
+                    line[4:],
+                    fonts["h3"],
+                    PROSE_COLOR_H3,
+                    x,
+                    y,
+                    MAX_TEXT_WIDTH,
+                    lh_h3,
+                )
                 y += PROSE_H3_MARGIN_BOTTOM
 
             elif line.startswith("## "):
                 if not prev_is_heading:
                     y += PROSE_H2_MARGIN_TOP
-                y = _draw_wrapped(draw, line[3:], fonts["h2"], PROSE_COLOR_H2, x, y, MAX_TEXT_WIDTH, lh_h2)
+                y = _draw_wrapped(
+                    draw,
+                    line[3:],
+                    fonts["h2"],
+                    PROSE_COLOR_H2,
+                    x,
+                    y,
+                    MAX_TEXT_WIDTH,
+                    lh_h2,
+                )
                 y += PROSE_H2_MARGIN_BOTTOM
 
             elif line.startswith("# "):
-                y = _draw_wrapped(draw, line[2:], fonts["h1"], PROSE_COLOR_H1, x, y, MAX_TEXT_WIDTH, lh_h1)
+                y = _draw_wrapped(
+                    draw,
+                    line[2:],
+                    fonts["h1"],
+                    PROSE_COLOR_H1,
+                    x,
+                    y,
+                    MAX_TEXT_WIDTH,
+                    lh_h1,
+                )
                 y += PROSE_H1_MARGIN_BOTTOM
 
             elif line.startswith("- "):
-                draw.text((x + PROSE_BULLET_INDENT - 28, y + 6), "•", font=marker_font, fill=PROSE_COLOR_BULLET)
-                y = _draw_wrapped(draw, line[2:], fonts["body"], PROSE_COLOR_BODY,
-                                  x + PROSE_BULLET_INDENT, y, bullet_width, lh_body)
+                draw.text(
+                    (x + PROSE_BULLET_INDENT - 28, y + 6),
+                    "•",
+                    font=marker_font,
+                    fill=PROSE_COLOR_BULLET,
+                )
+                y = _draw_wrapped(
+                    draw,
+                    line[2:],
+                    fonts["body"],
+                    PROSE_COLOR_BODY,
+                    x + PROSE_BULLET_INDENT,
+                    y,
+                    bullet_width,
+                    lh_body,
+                )
 
             elif m := re.match(r"^(\d+)\.\s", line):
                 marker = m.group(1) + "."
                 _, _, mw, _ = draw.textbbox((0, 0), marker, font=marker_font)
-                draw.text((x + PROSE_BULLET_INDENT - mw - 8, y), marker, font=marker_font, fill=PROSE_COLOR_BULLET)
-                y = _draw_wrapped(draw, line[m.end():], fonts["body"], PROSE_COLOR_BODY,
-                                  x + PROSE_BULLET_INDENT, y, bullet_width, lh_body)
+                draw.text(
+                    (x + PROSE_BULLET_INDENT - mw - 8, y),
+                    marker,
+                    font=marker_font,
+                    fill=PROSE_COLOR_BULLET,
+                )
+                y = _draw_wrapped(
+                    draw,
+                    line[m.end() :],
+                    fonts["body"],
+                    PROSE_COLOR_BODY,
+                    x + PROSE_BULLET_INDENT,
+                    y,
+                    bullet_width,
+                    lh_body,
+                )
 
             elif not line.strip():
                 # blank line = explicit paragraph gap, but suppress after headings
@@ -126,6 +202,15 @@ class ProseSlide(BaseSlide):
                     y += PROSE_PARA_GAP
 
             else:
-                y = _draw_wrapped(draw, line, fonts["body"], PROSE_COLOR_BODY, x, y, MAX_TEXT_WIDTH, lh_body)
+                y = _draw_wrapped(
+                    draw,
+                    line,
+                    fonts["body"],
+                    PROSE_COLOR_BODY,
+                    x,
+                    y,
+                    MAX_TEXT_WIDTH,
+                    lh_body,
+                )
 
         return img

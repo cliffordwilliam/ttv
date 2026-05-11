@@ -1,42 +1,52 @@
 from PIL import Image, ImageDraw
-from pygments.lexers import get_lexer_by_name, TextLexer
+from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.token import Token
-from slides.base import BaseSlide
-from schemas import CodeData
-from util.fonts import load_font
+
 from config import (
-    FONT_MONO, FONT_MONO_BOLD,
-    CODE_SIZE_BODY, CODE_PAD_X, CODE_PAD_Y, CODE_BLOCK_PADDING,
-    CODE_LINE_GAP, CODE_CORNER_RADIUS,
-    CODE_BLOCK_COLOR, CODE_DEFAULT_COLOR, CODE_HIGHLIGHT_COLOR,
-    CODE_GUTTER_COLOR, CODE_GUTTER_WIDTH, CODE_GUTTER_PAD_RIGHT, CODE_GUTTER_BORDER,
+    CODE_BLOCK_COLOR,
+    CODE_BLOCK_PADDING,
+    CODE_CORNER_RADIUS,
+    CODE_DEFAULT_COLOR,
+    CODE_GUTTER_BORDER,
+    CODE_GUTTER_COLOR,
+    CODE_GUTTER_PAD_RIGHT,
+    CODE_GUTTER_WIDTH,
+    CODE_HIGHLIGHT_COLOR,
+    CODE_LINE_GAP,
+    CODE_PAD_X,
+    CODE_PAD_Y,
+    CODE_SIZE_BODY,
+    FONT_MONO,
     RESOLUTION,
 )
+from schemas import CodeData
+from slides.base import BaseSlide
+from util.fonts import load_font
 
 HIGHLIGHT_MARKER = "!#"
 
 # VSCode Dark+ token colors
 TOKEN_COLORS = {
-    Token.Keyword:              (197, 134, 192),
-    Token.Keyword.Constant:     (86,  156, 214),
-    Token.Keyword.Declaration:  (86,  156, 214),
-    Token.Keyword.Type:         (86,  156, 214),
-    Token.Name.Builtin:         (220, 220, 170),
-    Token.Name.Function:        (220, 220, 170),
-    Token.Name.Function.Magic:  (220, 220, 170),
-    Token.Name.Class:           (78,  201, 176),
-    Token.Name.Decorator:       (220, 220, 170),
-    Token.String:               (206, 145, 120),
-    Token.String.Doc:           (106, 153,  85),
-    Token.Comment:              (106, 153,  85),
-    Token.Comment.Single:       (106, 153,  85),
-    Token.Number:               (181, 206, 168),
-    Token.Number.Integer:       (181, 206, 168),
-    Token.Number.Float:         (181, 206, 168),
-    Token.Operator:             (212, 212, 212),
-    Token.Punctuation:          (212, 212, 212),
-    Token.Name:                 (156, 220, 254),
-    Token.Text:                 (212, 212, 212),
+    Token.Keyword: (197, 134, 192),
+    Token.Keyword.Constant: (86, 156, 214),
+    Token.Keyword.Declaration: (86, 156, 214),
+    Token.Keyword.Type: (86, 156, 214),
+    Token.Name.Builtin: (220, 220, 170),
+    Token.Name.Function: (220, 220, 170),
+    Token.Name.Function.Magic: (220, 220, 170),
+    Token.Name.Class: (78, 201, 176),
+    Token.Name.Decorator: (220, 220, 170),
+    Token.String: (206, 145, 120),
+    Token.String.Doc: (106, 153, 85),
+    Token.Comment: (106, 153, 85),
+    Token.Comment.Single: (106, 153, 85),
+    Token.Number: (181, 206, 168),
+    Token.Number.Integer: (181, 206, 168),
+    Token.Number.Float: (181, 206, 168),
+    Token.Operator: (212, 212, 212),
+    Token.Punctuation: (212, 212, 212),
+    Token.Name: (156, 220, 254),
+    Token.Text: (212, 212, 212),
 }
 
 
@@ -68,7 +78,9 @@ def _split_tokens_by_line(tokens: list[tuple]) -> list[list[tuple]]:
     return lines
 
 
-def _rounded_rect(draw: ImageDraw.ImageDraw, box: tuple, radius: int, fill: tuple) -> None:
+def _rounded_rect(
+    draw: ImageDraw.ImageDraw, box: tuple, radius: int, fill: tuple
+) -> None:
     x0, y0, x1, y1 = box
     draw.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill)
 
@@ -107,8 +119,12 @@ class CodeSlide(BaseSlide):
         block_y1 = canvas_h - CODE_PAD_Y
 
         # editor card background
-        _rounded_rect(draw, (block_x0, block_y0, block_x1, block_y1),
-                      CODE_CORNER_RADIUS, CODE_BLOCK_COLOR)
+        _rounded_rect(
+            draw,
+            (block_x0, block_y0, block_x1, block_y1),
+            CODE_CORNER_RADIUS,
+            CODE_BLOCK_COLOR,
+        )
 
         gutter_border_x = block_x0 + CODE_BLOCK_PADDING + CODE_GUTTER_WIDTH
         x_text = gutter_border_x + CODE_GUTTER_PAD_RIGHT
@@ -116,9 +132,12 @@ class CodeSlide(BaseSlide):
 
         # 1px vertical separator — Prism spec
         draw.line(
-            [(gutter_border_x, block_y0 + CODE_BLOCK_PADDING),
-             (gutter_border_x, block_y1 - CODE_BLOCK_PADDING)],
-            fill=CODE_GUTTER_BORDER, width=1,
+            [
+                (gutter_border_x, block_y0 + CODE_BLOCK_PADDING),
+                (gutter_border_x, block_y1 - CODE_BLOCK_PADDING),
+            ],
+            fill=CODE_GUTTER_BORDER,
+            width=1,
         )
 
         for i, token_row in enumerate(token_lines):
@@ -132,7 +151,8 @@ class CodeSlide(BaseSlide):
                 )
                 draw.line(
                     [(gutter_border_x, y - 4), (gutter_border_x, y + row_h - 4)],
-                    fill=CODE_GUTTER_BORDER, width=1,
+                    fill=CODE_GUTTER_BORDER,
+                    width=1,
                 )
 
             # gutter line number — right-aligned with 0.8em pad from separator

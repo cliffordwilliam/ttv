@@ -6,3 +6,5 @@ __pycache__/
 *.wav
 *.mp4
 concat.txt
+
+.env

@@ -5,10 +5,7 @@ from dataclasses import dataclass, field
 class SlideData:
     content: list[str] = field(default_factory=list)
     voice_line: str = ""
-    duration: float = 0.0
-
-    def __post_init__(self):
-        self.duration = float(self.duration)
+    duration: str = ""
 
 
 @dataclass
@@ -29,5 +26,5 @@ class CodeData(SlideData):
 REGISTRY: dict[str, type[SlideData]] = {
     "prose": ProseData,
     "image": ImageData,
-    "code":  CodeData,
+    "code": CodeData,
 }
