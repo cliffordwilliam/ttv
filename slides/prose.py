@@ -160,8 +160,8 @@ class ProseSlide(BaseSlide):
 
             elif line.startswith("- "):
                 draw.text(
-                    (x + PROSE_BULLET_INDENT - 28, y + 6),
-                    "•",
+                    (x + PROSE_BULLET_INDENT - 28, y),
+                    "-",
                     font=marker_font,
                     fill=PROSE_COLOR_BULLET,
                 )

@@ -8,12 +8,12 @@ from schemas import SlideData
 from thread_task_logics.voice_actor_task_logic import KokoroProvider
 
 if __name__ == "__main__":
-    # Ensure that it takes exactly 1 input.
+    # Ensure that it takes exactly 1 text file input.
     if not len(sys.argv) == 2:
         print("usage: ttv.py <input.txt>", file=sys.stderr)
         sys.exit(1)
 
-    # Ensure given input path exists.
+    # Ensure given text file exists.
     given_text_input_path = Path(sys.argv[1])
     if not given_text_input_path.exists():
         print(f"error: file not found: {given_text_input_path}", file=sys.stderr)

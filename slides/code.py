@@ -1,6 +1,4 @@
 from PIL import Image, ImageDraw
-from pygments.lexers import TextLexer, get_lexer_by_name
-from pygments.styles import get_style_by_name
 
 from config import (
     CODE_BLOCK_PADDING,
@@ -15,39 +13,16 @@ from config import (
 )
 from schemas import CodeData
 from slides.base import BaseSlide
+from util import highlight
 from util.fonts import load_font
 
 HIGHLIGHT_MARKER = "!#"
 
-_style = get_style_by_name("catppuccin-mocha")
-_styles = dict(_style)
-
-
-def _hex(h: str) -> tuple[int, int, int]:
-    h = h.lstrip("#")
-    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
-
-
-CODE_BLOCK_COLOR = _hex(_style.background_color)
-CODE_DEFAULT_COLOR = (205, 214, 244)  # mocha text — fallback for uncolored tokens
-CODE_HIGHLIGHT_COLOR = _hex(_style.highlight_color)
+CODE_BLOCK_COLOR = (30, 30, 46)  # mocha base
+CODE_DEFAULT_COLOR = (205, 214, 244)  # mocha text
+CODE_HIGHLIGHT_COLOR = (49, 50, 68)  # mocha surface0
 CODE_GUTTER_COLOR = (127, 132, 156)  # mocha overlay1
 CODE_GUTTER_BORDER = (69, 71, 90)  # mocha surface1
-
-
-def _token_color(ttype) -> tuple[int, int, int]:
-    while ttype not in _styles:
-        ttype = ttype.parent
-    hex_color = _styles[ttype]["color"]
-    return _hex(hex_color) if hex_color else CODE_DEFAULT_COLOR
-
-
-def _tokenize(code: str, lang: str) -> list[tuple]:
-    try:
-        lexer = get_lexer_by_name(lang, stripall=False)
-    except Exception:
-        lexer = TextLexer()
-    return list(lexer.get_tokens(code))
 
 
 def _split_tokens_by_line(tokens: list[tuple]) -> list[list[tuple]]:
@@ -90,12 +65,8 @@ class CodeSlide(BaseSlide):
         ]
 
         code_text = "\n".join(clean_lines)
-        tokens = _tokenize(code_text, lang)
+        tokens = highlight.tokenize(code_text, lang)
         token_lines = _split_tokens_by_line(tokens)
-        # TODO: Switch to treesitter?
-        # This shows that it is lacking info, keeps defaulting to default colors...
-        # for ttype, value in tokens[:30]:  # just first 30 tokens
-        #     print(f"{ttype!s:<45} {repr(value)}")
 
         _, _, _, line_h = draw.textbbox((0, 0), "Ag", font=font)
         row_h = line_h + CODE_LINE_GAP
@@ -157,7 +128,7 @@ class CodeSlide(BaseSlide):
             # syntax-colored tokens
             x = x_text
             for ttype, value in token_row:
-                color = _token_color(ttype)
+                color = highlight.token_color(ttype)
                 draw.text((x, y), value, font=font, fill=color)
                 _, _, tw, _ = draw.textbbox((0, 0), value, font=font)
                 x += tw

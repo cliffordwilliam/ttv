@@ -26,6 +26,10 @@ KOKORO_URL=http://localhost:8880 uv run python ttv.py my_video.txt
 
 When Kokoro is active, slide duration is derived from the synthesized audio and `@duration` is ignored. When it is not, `@duration` is used as-is.
 
+## Syntax highlighting
+
+Code slides use [tree-sitter](https://tree-sitter.github.io/) for structural syntax highlighting. See [docs/highlight.md](docs/highlight.md) for architecture, adding languages, and tuning colors.
+
 ## Python dependencies
 
 Managed via `uv`. Run `uv sync` to install.

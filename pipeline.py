@@ -31,7 +31,6 @@ class Pipeline:
         self.absolute_video_output_path = given_absolute_video_output_path
 
         # Slides.
-        # DTO validation, turns raw into instances!
         self.slide_datas = given_slide_datas
         self.slide_datas_len = len(self.slide_datas)
 

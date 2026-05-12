@@ -2,13 +2,12 @@
 @voice_line=This slide introduces the topic.
 @duration=6
 # Welcome to ttv
-## A text-to-video compiler
 This is the first paragraph. It contains a long sentence that should wrap gracefully within the canvas boundaries without overflowing off the right edge of the screen.
 
 This is the second paragraph, separated by a blank line. Each paragraph flows independently and the gap between them follows the Tailwind prose spacing.
-- Text goes in
-- Video comes out
-- Like a compiler
+1. Text goes in
+2. Video comes out
+3. Like a compiler
 @end
 
 @slide=image
@@ -26,7 +25,7 @@ def parse(path: Path) -> list[SlideData]:
     slides: list[SlideData] = []
     state = _State.OUTSIDE
     slide_type: str = ""
-    slide_kwargs: dict[str, str] = {}
+    slide_kwargs: dict[str, str] = {} !#
     slide_content: list[str] = []
 
     for raw_line in text.splitlines():

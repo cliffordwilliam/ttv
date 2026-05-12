@@ -17,11 +17,11 @@ EMPTY_BAR_CHARACTER = "░"
 BACKGROUND_COLOR = (18, 18, 18)
 
 # --- Fonts ---
-FONT_REGULAR = "/usr/share/fonts/noto/NotoSans-Regular.ttf"
-FONT_SEMIBOLD = "/usr/share/fonts/noto/NotoSans-SemiBold.ttf"
-FONT_BOLD = "/usr/share/fonts/noto/NotoSans-Bold.ttf"
-FONT_EXTRABOLD = "/usr/share/fonts/noto/NotoSans-ExtraBold.ttf"
-FONT_MONO = "/usr/share/fonts/noto/NotoSansMono-Regular.ttf"
+FONT_REGULAR  = "/home/clif/.local/share/fonts/Inter/Inter-Regular.ttf"
+FONT_SEMIBOLD = "/home/clif/.local/share/fonts/Inter/Inter-SemiBold.ttf"
+FONT_BOLD     = "/home/clif/.local/share/fonts/Inter/Inter-Bold.ttf"
+FONT_EXTRABOLD= "/home/clif/.local/share/fonts/Inter/Inter-ExtraBold.ttf"
+FONT_MONO     = "/home/clif/.local/share/fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"
 
 # --- Prose slide font sizes (Tailwind prose ratios: 2.25 / 1.5 / 1.25 / 1) ---
 PROSE_SIZE_BODY = 40
