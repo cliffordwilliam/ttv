@@ -27,9 +27,5 @@ def _parse_text(text: str) -> list[dict]:
 
         if line.startswith("@slide="):
             slide_type = line[len("@slide="):]
-            if slide_type not in SUPPORTED_TYPES:
-                raise ValueError(f"Unknown slide type: {slide_type!r}")
-            if current is not None:
-                raise ValueError("Found @slide without a preceding @end")
             current = {"type": slide_type, "content": []}
 @end

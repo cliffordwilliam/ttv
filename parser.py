@@ -33,7 +33,7 @@ def parse(path: Path) -> list[SlideData]:
             # Handle illegal find.
             elif line == END_DIRECTIVE:
                 raise ValueError(
-                    f"Found {END_DIRECTIVE} without a matching {START_DIRECTIVE}"
+                    f"Invalid format: Found {END_DIRECTIVE} without a matching {START_DIRECTIVE}"
                 )
 
         elif state is _State.INSIDE:
@@ -49,27 +49,37 @@ def parse(path: Path) -> list[SlideData]:
             # Handle illegal find.
             elif line.startswith(START_DIRECTIVE):
                 raise ValueError(
-                    f"Found {START_DIRECTIVE} without a preceding {END_DIRECTIVE}"
+                    f"Invalid format: Found {START_DIRECTIVE} without a preceding {END_DIRECTIVE}"
                 )
             # Handle inside body.
             elif line.startswith(DIRECTIVE):
                 # Handle this slide key value pairs!
                 key, _, value = line[1:].partition("=")
                 _validate_slide_key(key, slide_type)
+                _validate_image_path_exists(key, value)
                 slide_kwargs[key] = value
             else:
                 # Handle this slide content/prose!
                 slide_content.append(raw_line)
 
     if state is _State.INSIDE:
-        raise ValueError(f"Reached end of file without a closing {END_DIRECTIVE}")
+        raise ValueError(
+            f"Invalid format: Reached end of file without a closing {END_DIRECTIVE}"
+        )
 
     return slides
 
 
+def _validate_image_path_exists(given_slide_key: str, given_slide_value: str):
+    if not given_slide_key == "src":
+        return
+    if not Path(given_slide_value).exists():
+        raise ValueError(f"Image not found: {given_slide_value}")
+
+
 def _validate_slide_type(given_slide_type: str):
     if given_slide_type not in REGISTRY:
-        raise ValueError(f"Unknown slide type {given_slide_type!r}")
+        raise ValueError(f"Unknown slide type: {given_slide_type!r}")
 
 
 def _validate_slide_key(given_slide_key: str, given_slide_type: str):
@@ -77,5 +87,5 @@ def _validate_slide_key(given_slide_key: str, given_slide_type: str):
     valid = {f.name for f in dc_fields(cls)} - {"content"}
     if given_slide_key not in valid:
         raise ValueError(
-            f"Unknown field {given_slide_key!r} for {given_slide_type!r} slide"
+            f"Unknown field: {given_slide_key!r} for {given_slide_type!r} slide"
         )

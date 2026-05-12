@@ -1,8 +1,8 @@
-from schemas import SlideData, ProseData, ImageData, CodeData
-from slides.prose import ProseSlide
-from slides.image import ImageSlide
-from slides.code import CodeSlide
+from schemas import CodeData, ImageData, ProseData, SlideData
 from slides.base import BaseSlide
+from slides.code import CodeSlide
+from slides.image import ImageSlide
+from slides.prose import ProseSlide
 
 
 def make_slide(data: SlideData) -> BaseSlide:

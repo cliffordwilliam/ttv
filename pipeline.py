@@ -203,4 +203,4 @@ class Pipeline:
             )
 
             # Draw the bar!
-            print(f"[{bar_characters}]", end=end, flush=True)
+            print(f"{bar_characters}", end=end, flush=True)

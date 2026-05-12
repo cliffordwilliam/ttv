@@ -39,3 +39,22 @@ uv run python ttv.py my_video.txt
 ```bash
 KOKORO_URL=http://localhost:8880 uv run python ttv.py my_video.txt
 ```
+
+## Provisioning Kokoro
+
+You can provision yourself with Kokoro:
+
+```bash
+docker run \
+    --name kokoro \
+    --restart=always \
+    -v kokoro-data:/var/lib/kokoro \
+    -p 8880:8880 \
+    -d hwdsl2/kokoro-server
+```
+
+Do not forget to make sure you have this in your .env:
+
+```text
+KOKORO_URL=http://localhost:8880
+```

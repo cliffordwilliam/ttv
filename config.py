@@ -65,17 +65,11 @@ PROSE_H3_MARGIN_BOTTOM = int(PROSE_SIZE_H3 * 0.6666)
 PROSE_LIST_ITEM_GAP = int(PROSE_SIZE_BODY * 0.5)
 PROSE_LIST_MARGIN = int(PROSE_SIZE_BODY * 1.25)
 
-# --- Code slide — Catppuccin Mocha ---
+# --- Code slide ---
 CODE_SIZE_BODY = 32
 CODE_PAD_X = 120  # canvas padding outside the block
 CODE_PAD_Y = 80
 CODE_BLOCK_PADDING = 48  # inner padding inside the editor block
 CODE_LINE_GAP = 10
 CODE_CORNER_RADIUS = 16
-CODE_BLOCK_COLOR = (30, 30, 30)  # editor background
-CODE_DEFAULT_COLOR = (212, 212, 212)  # default text
-CODE_HIGHLIGHT_COLOR = (45, 55, 35)  # highlighted line background
-CODE_GUTTER_COLOR = (153, 153, 153)  # #999 — matches Prism default
-CODE_GUTTER_WIDTH = int(CODE_SIZE_BODY * 3)  # 3em  — Prism spec
-CODE_GUTTER_PAD_RIGHT = int(CODE_SIZE_BODY * 0.8)  # 0.8em — Prism spec
-CODE_GUTTER_BORDER = (153, 153, 153)  # 1px separator color
+CODE_GUTTER_PAD_RIGHT = int(CODE_SIZE_BODY * 0.8)  # 0.8em pad between separator and text

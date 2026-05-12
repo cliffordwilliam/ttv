@@ -30,7 +30,9 @@ if __name__ == "__main__":
     kokoro_url = os.environ.get("KOKORO_URL")
     kokoro_provider = KokoroProvider(kokoro_url) if kokoro_url else None
     if kokoro_provider:
-        print(f"Kokoro provider: Kokoro at {kokoro_url}")
+        print(f"Kokoro provider found at {kokoro_url}")
+    else:
+        print("No Kokoro provider found")
 
     # Global error boundary to catch if anything goes wrong in pipeline.
     try:

@@ -1,17 +1,11 @@
 from PIL import Image, ImageDraw
 from pygments.lexers import TextLexer, get_lexer_by_name
-from pygments.token import Token
+from pygments.styles import get_style_by_name
 
 from config import (
-    CODE_BLOCK_COLOR,
     CODE_BLOCK_PADDING,
     CODE_CORNER_RADIUS,
-    CODE_DEFAULT_COLOR,
-    CODE_GUTTER_BORDER,
-    CODE_GUTTER_COLOR,
     CODE_GUTTER_PAD_RIGHT,
-    CODE_GUTTER_WIDTH,
-    CODE_HIGHLIGHT_COLOR,
     CODE_LINE_GAP,
     CODE_PAD_X,
     CODE_PAD_Y,
@@ -25,37 +19,27 @@ from util.fonts import load_font
 
 HIGHLIGHT_MARKER = "!#"
 
-# VSCode Dark+ token colors
-TOKEN_COLORS = {
-    Token.Keyword: (197, 134, 192),
-    Token.Keyword.Constant: (86, 156, 214),
-    Token.Keyword.Declaration: (86, 156, 214),
-    Token.Keyword.Type: (86, 156, 214),
-    Token.Name.Builtin: (220, 220, 170),
-    Token.Name.Function: (220, 220, 170),
-    Token.Name.Function.Magic: (220, 220, 170),
-    Token.Name.Class: (78, 201, 176),
-    Token.Name.Decorator: (220, 220, 170),
-    Token.String: (206, 145, 120),
-    Token.String.Doc: (106, 153, 85),
-    Token.Comment: (106, 153, 85),
-    Token.Comment.Single: (106, 153, 85),
-    Token.Number: (181, 206, 168),
-    Token.Number.Integer: (181, 206, 168),
-    Token.Number.Float: (181, 206, 168),
-    Token.Operator: (212, 212, 212),
-    Token.Punctuation: (212, 212, 212),
-    Token.Name: (156, 220, 254),
-    Token.Text: (212, 212, 212),
-}
+_style = get_style_by_name("catppuccin-mocha")
+_styles = dict(_style)
 
 
-def _token_color(ttype) -> tuple:
-    while ttype is not Token:
-        if ttype in TOKEN_COLORS:
-            return TOKEN_COLORS[ttype]
+def _hex(h: str) -> tuple[int, int, int]:
+    h = h.lstrip("#")
+    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+
+
+CODE_BLOCK_COLOR = _hex(_style.background_color)
+CODE_DEFAULT_COLOR = (205, 214, 244)  # mocha text — fallback for uncolored tokens
+CODE_HIGHLIGHT_COLOR = _hex(_style.highlight_color)
+CODE_GUTTER_COLOR = (127, 132, 156)  # mocha overlay1
+CODE_GUTTER_BORDER = (69, 71, 90)  # mocha surface1
+
+
+def _token_color(ttype) -> tuple[int, int, int]:
+    while ttype not in _styles:
         ttype = ttype.parent
-    return CODE_DEFAULT_COLOR
+    hex_color = _styles[ttype]["color"]
+    return _hex(hex_color) if hex_color else CODE_DEFAULT_COLOR
 
 
 def _tokenize(code: str, lang: str) -> list[tuple]:
@@ -108,9 +92,18 @@ class CodeSlide(BaseSlide):
         code_text = "\n".join(clean_lines)
         tokens = _tokenize(code_text, lang)
         token_lines = _split_tokens_by_line(tokens)
+        # TODO: Switch to treesitter?
+        # This shows that it is lacking info, keeps defaulting to default colors...
+        # for ttype, value in tokens[:30]:  # just first 30 tokens
+        #     print(f"{ttype!s:<45} {repr(value)}")
 
         _, _, _, line_h = draw.textbbox((0, 0), "Ag", font=font)
         row_h = line_h + CODE_LINE_GAP
+
+        # Derive gutter width from actual char width × digit count (Pygments: fontw * chars + pad)
+        _, _, char_w, _ = draw.textbbox((0, 0), "0", font=gutter_font)
+        gutter_digits = len(str(len(token_lines)))
+        gutter_width = char_w * gutter_digits + CODE_GUTTER_PAD_RIGHT
 
         canvas_w, canvas_h = RESOLUTION
         block_x0 = CODE_PAD_X
@@ -126,7 +119,7 @@ class CodeSlide(BaseSlide):
             CODE_BLOCK_COLOR,
         )
 
-        gutter_border_x = block_x0 + CODE_BLOCK_PADDING + CODE_GUTTER_WIDTH
+        gutter_border_x = block_x0 + CODE_BLOCK_PADDING + gutter_width
         x_text = gutter_border_x + CODE_GUTTER_PAD_RIGHT
         y = block_y0 + CODE_BLOCK_PADDING
 

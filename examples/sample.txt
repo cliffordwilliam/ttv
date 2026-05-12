@@ -21,18 +21,14 @@ This is the second paragraph, separated by a blank line. Each paragraph flows in
 @voice_line=Here is the main render function.
 @duration=8
 @lang=python
-def _parse_text(text: str) -> list[dict]:
-    slides = []
-    current = None
+def parse(path: Path) -> list[SlideData]:
+    text = path.read_text(encoding="utf-8")
+    slides: list[SlideData] = []
+    state = _State.OUTSIDE
+    slide_type: str = ""
+    slide_kwargs: dict[str, str] = {}
+    slide_content: list[str] = []
 
     for raw_line in text.splitlines():
-        line = raw_line.rstrip() !#
-
-        if line.startswith("@slide="):
-            slide_type = line[len("@slide="):]
-            if slide_type not in SUPPORTED_TYPES:
-                raise ValueError(f"Unknown slide type: {slide_type!r}")
-            if current is not None:
-                raise ValueError("Found @slide without a preceding @end")
-            current = {"type": slide_type, "content": []}
+        line = raw_line.rstrip()
 @end
