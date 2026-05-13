@@ -9,11 +9,6 @@ class SlideData:
 
 
 @dataclass
-class ProseData(SlideData):
-    pass
-
-
-@dataclass
 class ImageData(SlideData):
     src: str = ""
 
@@ -24,7 +19,6 @@ class CodeData(SlideData):
 
 
 REGISTRY: dict[str, type[SlideData]] = {
-    "prose": ProseData,
     "image": ImageData,
     "code": CodeData,
 }

@@ -1,5 +1,6 @@
 import importlib.resources
 
+import tree_sitter_markdown as tsmarkdown
 import tree_sitter_python as tspython
 from tree_sitter import Language, Parser, Query, QueryCursor
 
@@ -22,6 +23,16 @@ _COLORS: dict[str, tuple[int, int, int]] = {
     "number": (250, 179, 135),  # peach
     "operator": (205, 214, 244),  # text
     "variable": (205, 214, 244),  # text
+    # markdown-specific
+    "text.title": (180, 190, 254),       # lavender — heading content
+    "text.strong": (249, 226, 175),      # yellow   — bold
+    "text.emphasis": (245, 194, 231),    # pink     — italic
+    "text.literal": (166, 227, 161),     # green    — inline code / code blocks
+    "text.uri": (137, 180, 250),         # blue     — links
+    "text.reference": (116, 199, 236),   # sapphire — link labels
+    "punctuation.special": (203, 166, 247),  # mauve — #/- markers
+    "punctuation.delimiter": (127, 132, 156),  # overlay1 — brackets / backticks
+    "string.escape": (148, 226, 213),    # teal     — backslash escapes
     "default": (205, 214, 244),  # text
 }
 
@@ -44,6 +55,16 @@ _PRIORITY: list[str] = [
     "type",
     "function.builtin",
     "keyword",
+    # markdown-specific
+    "text.title",
+    "text.strong",
+    "text.emphasis",
+    "text.literal",
+    "text.uri",
+    "text.reference",
+    "punctuation.special",
+    "punctuation.delimiter",
+    "string.escape",
 ]
 
 _BUILTINS: frozenset[str] = frozenset(
@@ -192,9 +213,15 @@ _BUILTINS: frozenset[str] = frozenset(
 
 # Maps canonical lang name → installed tree-sitter-* package name.
 # To add a language: uv add tree-sitter-<lang>, import it above, then add
-# entries here and in _LANGUAGES / _PARSERS below.
+# entries here and in _LANGUAGES / _PARSERS / _QUERY_SUBPATHS below.
 _LANG_PACKAGES: dict[str, str] = {
     "python": "tree_sitter_python",
+    "markdown": "tree_sitter_markdown",
+}
+
+# Override when the highlights.scm is not at the default queries/highlights.scm path.
+_QUERY_SUBPATHS: dict[str, str] = {
+    "markdown": "queries/markdown/highlights.scm",
 }
 
 # Extra patterns appended on top of each language's bundled highlights.scm.
@@ -215,11 +242,13 @@ _CUSTOM_PATTERNS: dict[str, str] = {
 _LANG_ALIASES: dict[str, str] = {
     "py": "python",
     "python3": "python",
+    "md": "markdown",
 }
 
 _PY_LANGUAGE = Language(tspython.language())
-_LANGUAGES: dict[str, Language] = {"python": _PY_LANGUAGE}
-_PARSERS: dict[str, Parser] = {"python": Parser(_PY_LANGUAGE)}
+_MD_LANGUAGE = Language(tsmarkdown.language())
+_LANGUAGES: dict[str, Language] = {"python": _PY_LANGUAGE, "markdown": _MD_LANGUAGE}
+_PARSERS: dict[str, Parser] = {"python": Parser(_PY_LANGUAGE), "markdown": Parser(_MD_LANGUAGE)}
 
 _compiled_queries: dict[str, Query] = {}
 
@@ -230,9 +259,10 @@ def _normalize(lang: str) -> str:
 
 def _load_query(lang: str) -> Query:
     pkg = _LANG_PACKAGES[lang]
+    subpath = _QUERY_SUBPATHS.get(lang, "queries/highlights.scm")
     base = (
         importlib.resources.files(pkg)
-        .joinpath("queries/highlights.scm")
+        .joinpath(subpath)
         .read_text(encoding="utf-8")
     )
     return Query(_LANGUAGES[lang], base + _CUSTOM_PATTERNS.get(lang, ""))

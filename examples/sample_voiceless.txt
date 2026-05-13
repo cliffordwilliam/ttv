@@ -1,13 +1,14 @@
-@slide=prose
+@slide=code
+@voice_line=This slide introduces the topic.
 @duration=6
+@lang=markdown
 # Welcome to ttv
-## A text-to-video compiler
-This is the first paragraph. It contains a long sentence that should wrap gracefully within the canvas boundaries without overflowing off the right edge of the screen.
+This is the first paragraph.
 
-This is the second paragraph, separated by a blank line. Each paragraph flows independently and the gap between them follows the Tailwind prose spacing.
-- Text goes in
-- Video comes out
-- Like a compiler
+This is the second paragraph.
+1. Text goes in
+2. Video comes out
+3. Like a compiler
 @end
 
 @slide=image

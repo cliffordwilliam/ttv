@@ -87,6 +87,7 @@ def _validate_slide_type(given_slide_type: str):
 
 def _validate_slide_key(given_slide_key: str, given_slide_type: str):
     slide_class = REGISTRY[given_slide_type]
+    # Valid keys are the ones in DTO (minus its content key)
     valid_keys = {f.name for f in dc_fields(slide_class)} - {"content"}
     if given_slide_key not in valid_keys:
         raise ValueError(

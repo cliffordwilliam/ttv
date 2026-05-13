@@ -16,24 +16,41 @@ def video_editor_task_logic(
 
     # Build the cmd for ffmpeg.
 
-    # Allow output overwrite, input 0 is image, keep input 0 open.
-    cmd = ["ffmpeg", "-y", "-loop", "1", "-i", str(drawing_saved_file_path)]
+    # Allow output overwrite, input 0 is image, keep input 0 open and demux flow it at 60 fps.
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-loop",
+        "1",
+        "-framerate",
+        str(FPS),
+        "-i",
+        str(drawing_saved_file_path),
+    ]
+
     if voice_saved_file_path:
         # Input 1 is audio.
         cmd += ["-i", str(voice_saved_file_path)]
-        # Apply delay to audio, set compression algo for audio.
+        # Filter delay and set codec for audio.
         cmd += [
             "-af",
             f"adelay={audio_delay_ms}|{audio_delay_ms}",
             "-c:a",
             "aac",
         ]
-    # Set compression algo for image.
-    cmd += ["-c:v", "libx264", "-tune", "stillimage"]
-    # Apply fade to image, set FPS, limit image input stream duration.
+
+    # Filter fade and set codec for image.
     cmd += [
         "-vf",
         f"fade=in:st=0:d=0.5,fade=out:st={fade_out_start_time:.3f}:d=0.5",
+        "-c:v",
+        "libx264",
+        "-tune",
+        "stillimage",
+    ]
+
+    # Set mux FPS and its duration to emit stop upstream.
+    cmd += [
         "-r",
         str(FPS),
         "-t",
@@ -51,17 +68,15 @@ def video_editor_task_logic(
 def link_each_saved_videos_into_one_big_video_file(
     video_saved_file_paths: list[Path], absolute_video_output_path: Path
 ) -> None:
-    # Create a todo list for the concat.
-    # To concat each small videos into one big video.
-    concat_todo_list = absolute_video_output_path.parent / "concat_todo_list.txt"
-    with open(concat_todo_list, "w") as f:
+    # Prepare paths for concat demux.
+    saved_video_paths = absolute_video_output_path.parent / "saved_video_paths.txt"
+    with open(saved_video_paths, "w") as f:
         for clip in video_saved_file_paths:
             f.write(f"file '{Path(clip).resolve()}'\n")
 
     # Allow output overwrite.
-    # Use concat demux to read todo file and grab stream from each saved video.
-    # Allow absolute path. Set input 0 as todo text file.
-    # Merge bytes from individual video into one big video.
+    # Concat demux reads absolute path and make one big stream for each video files.
+    # Keep packets compressed and just bring them togehter in mux.
     result = _run_cmd(
         [
             "ffmpeg",
@@ -71,15 +86,15 @@ def link_each_saved_videos_into_one_big_video_file(
             "-safe",
             "0",
             "-i",
-            str(concat_todo_list),
+            str(saved_video_paths),
             "-c",
             "copy",
             str(absolute_video_output_path),
         ]
     )
 
-    # Delete todo txt file.
-    concat_todo_list.unlink()
+    # Delete txt file.
+    saved_video_paths.unlink()
 
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg concat failed:\n{result.stderr[-2000:]}")
