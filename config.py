@@ -70,6 +70,6 @@ CODE_SIZE_BODY = 32
 CODE_PAD_X = 120  # canvas padding outside the block
 CODE_PAD_Y = 80
 CODE_BLOCK_PADDING = 48  # inner padding inside the editor block
-CODE_LINE_GAP = 10
+CODE_LINE_GAP = 13
 CODE_CORNER_RADIUS = 16
 CODE_GUTTER_PAD_RIGHT = int(CODE_SIZE_BODY * 0.8)  # 0.8em pad between separator and text

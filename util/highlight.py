@@ -4,25 +4,25 @@ import tree_sitter_python as tspython
 from tree_sitter import Language, Parser, Query, QueryCursor
 
 _COLORS: dict[str, tuple[int, int, int]] = {
-    "keyword":          (203, 166, 247),  # mauve
+    "keyword": (203, 166, 247),  # mauve
     "constant.builtin": (203, 166, 247),  # mauve   — None / True / False
-    "function":         (137, 180, 250),  # blue
-    "function.method":  (116, 199, 236),  # sapphire
+    "function": (137, 180, 250),  # blue
+    "function.method": (116, 199, 236),  # sapphire
     "function.builtin": (249, 226, 175),  # yellow  — builtins as callables
-    "property":         (116, 199, 236),  # sapphire
-    "type":             (249, 226, 175),  # yellow
-    "constructor":      (249, 226, 175),  # yellow  — PascalCase convention
-    "constant":         (250, 179, 135),  # peach   — ALL_CAPS
-    "builtin":          (249, 226, 175),  # yellow  — post-pass non-call builtins
-    "module":           (180, 190, 254),  # lavender
-    "parameter":        (235, 160, 172),  # maroon
-    "string":           (166, 227, 161),  # green
-    "escape":           (148, 226, 213),  # teal
-    "comment":          (127, 132, 156),  # overlay1
-    "number":           (250, 179, 135),  # peach
-    "operator":         (205, 214, 244),  # text
-    "variable":         (205, 214, 244),  # text
-    "default":          (205, 214, 244),  # text
+    "property": (116, 199, 236),  # sapphire
+    "type": (249, 226, 175),  # yellow
+    "constructor": (249, 226, 175),  # yellow  — PascalCase convention
+    "constant": (250, 179, 135),  # peach   — ALL_CAPS
+    "builtin": (249, 226, 175),  # yellow  — post-pass non-call builtins
+    "module": (180, 190, 254),  # lavender
+    "parameter": (235, 160, 172),  # maroon
+    "string": (166, 227, 161),  # green
+    "escape": (148, 226, 213),  # teal
+    "comment": (127, 132, 156),  # overlay1
+    "number": (250, 179, 135),  # peach
+    "operator": (205, 214, 244),  # text
+    "variable": (205, 214, 244),  # text
+    "default": (205, 214, 244),  # text
 }
 
 # Ordered least → most specific; later passes overwrite earlier ones
@@ -37,65 +37,158 @@ _PRIORITY: list[str] = [
     "parameter",
     "constant.builtin",
     "function",
-    "constructor",       # PascalCase overwrites @function for class-like names
-    "module",            # lavender for imports beats yellow PascalCase heuristic
-    "constant",          # peach ALL_CAPS beats yellow PascalCase heuristic
+    "constructor",  # PascalCase overwrites @function for class-like names
+    "module",  # lavender for imports beats yellow PascalCase heuristic
+    "constant",  # peach ALL_CAPS beats yellow PascalCase heuristic
     "function.method",
     "type",
     "function.builtin",
     "keyword",
 ]
 
-_BUILTINS: frozenset[str] = frozenset({
-    "abs", "aiter", "all", "anext", "any", "ascii",
-    "bin", "bool", "breakpoint", "bytearray", "bytes",
-    "callable", "chr", "classmethod", "compile", "complex",
-    "delattr", "dict", "dir", "divmod",
-    "enumerate", "eval", "exec",
-    "filter", "float", "format", "frozenset",
-    "getattr", "globals",
-    "hasattr", "hash", "help", "hex",
-    "id", "input", "int", "isinstance", "issubclass", "iter",
-    "len", "list",
-    "locals",
-    "map", "max", "memoryview", "min",
-    "next",
-    "object", "oct", "open", "ord",
-    "pow", "print", "property",
-    "range", "repr", "reversed", "round",
-    "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum", "super",
-    "tuple", "type",
-    "vars",
-    "zip",
-    "ArithmeticError", "AssertionError", "AttributeError",
-    "BaseException", "BaseExceptionGroup",
-    "BlockingIOError", "BrokenPipeError", "BufferError", "BytesWarning",
-    "ChildProcessError", "ConnectionAbortedError", "ConnectionError",
-    "ConnectionRefusedError", "ConnectionResetError",
-    "DeprecationWarning",
-    "EOFError", "EnvironmentError", "Exception", "ExceptionGroup",
-    "FileExistsError", "FileNotFoundError", "FloatingPointError",
-    "FutureWarning",
-    "GeneratorExit",
-    "IOError", "ImportError", "ImportWarning", "IndentationError",
-    "IndexError", "InterruptedError", "IsADirectoryError",
-    "KeyError", "KeyboardInterrupt",
-    "LookupError",
-    "MemoryError", "ModuleNotFoundError",
-    "NameError", "NotADirectoryError", "NotImplemented", "NotImplementedError",
-    "OSError", "OverflowError",
-    "PendingDeprecationWarning", "PermissionError", "ProcessLookupError",
-    "RecursionError", "ReferenceError", "ResourceWarning", "RuntimeError",
-    "RuntimeWarning",
-    "StopAsyncIteration", "StopIteration", "SyntaxError", "SyntaxWarning",
-    "SystemError", "SystemExit",
-    "TabError", "TimeoutError", "TypeError",
-    "UnboundLocalError", "UnicodeDecodeError", "UnicodeEncodeError",
-    "UnicodeError", "UnicodeTranslateError", "UnicodeWarning", "UserWarning",
-    "ValueError",
-    "Warning",
-    "ZeroDivisionError",
-})
+_BUILTINS: frozenset[str] = frozenset(
+    {
+        "abs",
+        "aiter",
+        "all",
+        "anext",
+        "any",
+        "ascii",
+        "bin",
+        "bool",
+        "breakpoint",
+        "bytearray",
+        "bytes",
+        "callable",
+        "chr",
+        "classmethod",
+        "compile",
+        "complex",
+        "delattr",
+        "dict",
+        "dir",
+        "divmod",
+        "enumerate",
+        "eval",
+        "exec",
+        "filter",
+        "float",
+        "format",
+        "frozenset",
+        "getattr",
+        "globals",
+        "hasattr",
+        "hash",
+        "help",
+        "hex",
+        "id",
+        "input",
+        "int",
+        "isinstance",
+        "issubclass",
+        "iter",
+        "len",
+        "list",
+        "locals",
+        "map",
+        "max",
+        "memoryview",
+        "min",
+        "next",
+        "object",
+        "oct",
+        "open",
+        "ord",
+        "pow",
+        "print",
+        "property",
+        "range",
+        "repr",
+        "reversed",
+        "round",
+        "set",
+        "setattr",
+        "slice",
+        "sorted",
+        "staticmethod",
+        "str",
+        "sum",
+        "super",
+        "tuple",
+        "type",
+        "vars",
+        "zip",
+        "ArithmeticError",
+        "AssertionError",
+        "AttributeError",
+        "BaseException",
+        "BaseExceptionGroup",
+        "BlockingIOError",
+        "BrokenPipeError",
+        "BufferError",
+        "BytesWarning",
+        "ChildProcessError",
+        "ConnectionAbortedError",
+        "ConnectionError",
+        "ConnectionRefusedError",
+        "ConnectionResetError",
+        "DeprecationWarning",
+        "EOFError",
+        "EnvironmentError",
+        "Exception",
+        "ExceptionGroup",
+        "FileExistsError",
+        "FileNotFoundError",
+        "FloatingPointError",
+        "FutureWarning",
+        "GeneratorExit",
+        "IOError",
+        "ImportError",
+        "ImportWarning",
+        "IndentationError",
+        "IndexError",
+        "InterruptedError",
+        "IsADirectoryError",
+        "KeyError",
+        "KeyboardInterrupt",
+        "LookupError",
+        "MemoryError",
+        "ModuleNotFoundError",
+        "NameError",
+        "NotADirectoryError",
+        "NotImplemented",
+        "NotImplementedError",
+        "OSError",
+        "OverflowError",
+        "PendingDeprecationWarning",
+        "PermissionError",
+        "ProcessLookupError",
+        "RecursionError",
+        "ReferenceError",
+        "ResourceWarning",
+        "RuntimeError",
+        "RuntimeWarning",
+        "StopAsyncIteration",
+        "StopIteration",
+        "SyntaxError",
+        "SyntaxWarning",
+        "SystemError",
+        "SystemExit",
+        "TabError",
+        "TimeoutError",
+        "TypeError",
+        "UnboundLocalError",
+        "UnicodeDecodeError",
+        "UnicodeEncodeError",
+        "UnicodeError",
+        "UnicodeTranslateError",
+        "UnicodeWarning",
+        "UserWarning",
+        "ValueError",
+        "Warning",
+        "ZeroDivisionError",
+    }
+)
 
 # Maps canonical lang name → installed tree-sitter-* package name.
 # To add a language: uv add tree-sitter-<lang>, import it above, then add

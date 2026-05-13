@@ -11,8 +11,11 @@ class _State(Enum):
     INSIDE = auto()
 
 
-def parse(path: Path) -> list[SlideData]:
-    text = path.read_text(encoding="utf-8")
+def parse(text_file_path: Path) -> list[SlideData]:
+    # Decode text using utf-8 and store it here.
+    text = text_file_path.read_text(encoding="utf-8")
+
+    # Setup state machine states
     slides: list[SlideData] = []
     state = _State.OUTSIDE
     slide_type: str = ""
@@ -40,8 +43,8 @@ def parse(path: Path) -> list[SlideData]:
             # Hunt for END!
             # Setup and transition to OUTSIDE state.
             if line == END_DIRECTIVE:
-                cls = REGISTRY[slide_type]
-                slides.append(cls(content=slide_content, **slide_kwargs))
+                slide_class = REGISTRY[slide_type]
+                slides.append(slide_class(content=slide_content, **slide_kwargs))
                 slide_type = ""
                 slide_kwargs = {}
                 slide_content = []
@@ -59,7 +62,7 @@ def parse(path: Path) -> list[SlideData]:
                 _validate_image_path_exists(key, value)
                 slide_kwargs[key] = value
             else:
-                # Handle this slide content/prose!
+                # Handle this slide content!
                 slide_content.append(raw_line)
 
     if state is _State.INSIDE:
@@ -71,10 +74,10 @@ def parse(path: Path) -> list[SlideData]:
 
 
 def _validate_image_path_exists(given_slide_key: str, given_slide_value: str):
-    if not given_slide_key == "src":
-        return
-    if not Path(given_slide_value).exists():
-        raise ValueError(f"Image not found: {given_slide_value}")
+    if given_slide_key == "src":
+        image_path_string = given_slide_value
+        if not Path(image_path_string).exists():
+            raise ValueError(f"Image not found: {image_path_string}")
 
 
 def _validate_slide_type(given_slide_type: str):
@@ -83,9 +86,9 @@ def _validate_slide_type(given_slide_type: str):
 
 
 def _validate_slide_key(given_slide_key: str, given_slide_type: str):
-    cls = REGISTRY[given_slide_type]
-    valid = {f.name for f in dc_fields(cls)} - {"content"}
-    if given_slide_key not in valid:
+    slide_class = REGISTRY[given_slide_type]
+    valid_keys = {f.name for f in dc_fields(slide_class)} - {"content"}
+    if given_slide_key not in valid_keys:
         raise ValueError(
             f"Unknown field: {given_slide_key!r} for {given_slide_type!r} slide"
         )
