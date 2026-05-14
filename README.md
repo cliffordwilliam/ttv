@@ -28,7 +28,7 @@ Voice is optional. ttv supports two providers:
 | Provider | Use case | Requires |
 |---|---|---|
 | **Piper** | Local dev — free, no network, no credits | `PIPER_MODEL` env var |
-| **ElevenLabs** | Final render — Yuki's voice | `ELEVEN_LABS_API_KEY` + `VOICE_ID` env vars |
+| **ElevenLabs** | Final render — paid | `ELEVEN_LABS_API_KEY` + `VOICE_ID` env vars |
 
 If neither is configured, each slide must declare its screen time explicitly:
 
@@ -50,8 +50,10 @@ curl -L https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac
 curl -L https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/high/en_US-lessac-high.onnx.json -o voices/en_US-lessac-high.onnx.json
 ```
 
-```bash
-PIPER_MODEL=voices/en_US-lessac-high.onnx ttv my_video.txt
+Add your credentials to `.env` (see `.env.example`):
+
+```text
+PIPER_MODEL=voices/en_US-lessac-high.onnx
 ```
 
 ### ElevenLabs (final render)
@@ -77,9 +79,6 @@ Managed via `uv`. Run `uv sync` to install.
 # silent
 ttv my_video.txt
 
-# local dev voice
-PIPER_MODEL=voices/en_US-lessac-high.onnx ttv my_video.txt
-
-# final render (ttv auto-loads .env from current directory)
+# local dev or final render (ttv auto-loads .env from current directory)
 ttv my_video.txt
 ```

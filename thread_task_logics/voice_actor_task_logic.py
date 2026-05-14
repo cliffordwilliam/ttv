@@ -60,8 +60,8 @@ class PiperProvider:
         self,
         slide_data: SlideData,
         audio_path: Path,
-        previous_text: str | None = None,
-        next_text: str | None = None,
+        _previous_text: str | None = None,
+        _next_text: str | None = None,
     ) -> float:
         result = subprocess.run(
             ["piper", "--model", self.model_path, "--output_file", str(audio_path)],
