@@ -1,3 +1,4 @@
+from catppuccin import PALETTE as _CAT
 from PIL import Image, ImageDraw, ImageFilter
 
 from config import (
@@ -18,20 +19,32 @@ from util.fonts import load_font
 
 HIGHLIGHT_MARKER = "!#"
 
-CODE_BLOCK_COLOR = (30, 30, 46)           # mocha base
-CODE_DEFAULT_COLOR = (205, 214, 244)      # mocha text
-CODE_HIGHLIGHT_COLOR = (49, 50, 68)       # mocha surface0
-CODE_GUTTER_COLOR = (127, 132, 156)       # mocha overlay1
-CODE_GUTTER_BORDER = (69, 71, 90)         # mocha surface1
-CODE_TITLEBAR_COLOR = (24, 24, 37)        # mocha mantle
-CODE_TITLEBAR_DOT_COLOR = (88, 91, 112)   # mocha surface2
-CODE_TITLEBAR_BORDER_COLOR = (49, 50, 68) # mocha surface0
+_M = _CAT.mocha.colors
 
-CODE_TITLEBAR_HEIGHT = 90       # ref 38px × (32/13.5)
-CODE_TITLEBAR_PAD = 28          # ref 12px × (32/13.5) — left/right padding inside titlebar
-CODE_TITLEBAR_DOT_RADIUS = 14   # ref 6px  × (32/13.5)
-CODE_TITLEBAR_DOT_GAP = 45      # ref 19px × (32/13.5) — center-to-center (diameter + edge gap)
-CODE_TITLEBAR_LABEL_RIGHT = 33  # ref 14px × (32/13.5) — right offset for the editor name
+
+def _rgb(c) -> tuple[int, int, int]:
+    return (c.rgb.r, c.rgb.g, c.rgb.b)
+
+
+CODE_BLOCK_COLOR = _rgb(_M.base)
+CODE_DEFAULT_COLOR = _rgb(_M.text)
+CODE_HIGHLIGHT_COLOR = _rgb(_M.surface0)
+CODE_GUTTER_COLOR = _rgb(_M.overlay1)
+CODE_GUTTER_HIGHLIGHT_COLOR = _rgb(_M.subtext0)
+CODE_GUTTER_BORDER = _rgb(_M.surface1)
+CODE_TITLEBAR_COLOR = _rgb(_M.mantle)
+CODE_TITLEBAR_DOT_COLOR = _rgb(_M.surface2)
+CODE_TITLEBAR_BORDER_COLOR = _rgb(_M.surface0)
+
+CODE_TITLEBAR_HEIGHT = 90  # ref 38px × (32/13.5)
+CODE_TITLEBAR_PAD = 28  # ref 12px × (32/13.5) — left/right padding inside titlebar
+CODE_TITLEBAR_DOT_RADIUS = 14  # ref 6px  × (32/13.5)
+CODE_TITLEBAR_DOT_GAP = (
+    45  # ref 19px × (32/13.5) — center-to-center (diameter + edge gap)
+)
+CODE_TITLEBAR_LABEL_RIGHT = (
+    33  # ref 14px × (32/13.5) — right offset for the editor name
+)
 
 
 def _split_tokens_by_line(tokens: list[tuple]) -> list[list[tuple]]:
@@ -64,7 +77,9 @@ class CodeSlide(BaseSlide):
         lang = self.data.lang
         font = load_font(FONT_MONO, CODE_SIZE_BODY)
         gutter_font = load_font(FONT_MONO, CODE_SIZE_BODY)
-        titlebar_font = load_font(FONT_MONO, int(CODE_SIZE_BODY * 11.5 / 13.5))  # ref 11.5/13.5 ratio
+        titlebar_font = load_font(
+            FONT_MONO, int(CODE_SIZE_BODY * 11.5 / 13.5)
+        )  # ref 11.5/13.5 ratio
 
         raw_lines = self.data.content
         highlighted = [line.endswith(HIGHLIGHT_MARKER) for line in raw_lines]
@@ -108,21 +123,41 @@ class CodeSlide(BaseSlide):
         draw = ImageDraw.Draw(img)
 
         # Card background
-        _rounded_rect(draw, (block_x0, block_y0, block_x1, block_y1), CODE_CORNER_RADIUS, CODE_BLOCK_COLOR)
+        _rounded_rect(
+            draw,
+            (block_x0, block_y0, block_x1, block_y1),
+            CODE_CORNER_RADIUS,
+            CODE_BLOCK_COLOR,
+        )
 
         # Titlebar: extend rounded rect below the separator by corner radius so the
         # bottom "rounded corners" of this rect are hidden inside the code area,
         # then patch that strip back to CODE_BLOCK_COLOR.
-        _rounded_rect(draw, (block_x0, block_y0, block_x1, titlebar_y1 + CODE_CORNER_RADIUS), CODE_CORNER_RADIUS, CODE_TITLEBAR_COLOR)
-        draw.rectangle([(block_x0, titlebar_y1), (block_x1, titlebar_y1 + CODE_CORNER_RADIUS)], fill=CODE_BLOCK_COLOR)
-        draw.line([(block_x0, titlebar_y1), (block_x1, titlebar_y1)], fill=CODE_TITLEBAR_BORDER_COLOR, width=1)
+        _rounded_rect(
+            draw,
+            (block_x0, block_y0, block_x1, titlebar_y1 + CODE_CORNER_RADIUS),
+            CODE_CORNER_RADIUS,
+            CODE_TITLEBAR_COLOR,
+        )
+        draw.rectangle(
+            [(block_x0, titlebar_y1), (block_x1, titlebar_y1 + CODE_CORNER_RADIUS)],
+            fill=CODE_BLOCK_COLOR,
+        )
+        draw.line(
+            [(block_x0, titlebar_y1), (block_x1, titlebar_y1)],
+            fill=CODE_TITLEBAR_BORDER_COLOR,
+            width=1,
+        )
 
         # Traffic light dots
         dot_cx = block_x0 + CODE_TITLEBAR_PAD + CODE_TITLEBAR_DOT_RADIUS
         dot_cy = block_y0 + CODE_TITLEBAR_HEIGHT // 2
         for _ in range(3):
             r = CODE_TITLEBAR_DOT_RADIUS
-            draw.ellipse([dot_cx - r, dot_cy - r, dot_cx + r, dot_cy + r], fill=CODE_TITLEBAR_DOT_COLOR)
+            draw.ellipse(
+                [dot_cx - r, dot_cy - r, dot_cx + r, dot_cy + r],
+                fill=CODE_TITLEBAR_DOT_COLOR,
+            )
             dot_cx += CODE_TITLEBAR_DOT_GAP
 
         # Editor name label (right-aligned)
@@ -130,7 +165,10 @@ class CodeSlide(BaseSlide):
         lx0, ly0, lx1, ly1 = draw.textbbox((0, 0), label, font=titlebar_font)
         label_h = ly1 - ly0
         draw.text(
-            (block_x1 - CODE_TITLEBAR_LABEL_RIGHT - lx1, block_y0 + (CODE_TITLEBAR_HEIGHT - label_h) // 2 - ly0),
+            (
+                block_x1 - CODE_TITLEBAR_LABEL_RIGHT - lx1,
+                block_y0 + (CODE_TITLEBAR_HEIGHT - label_h) // 2 - ly0,
+            ),
             label,
             font=titlebar_font,
             fill=CODE_GUTTER_COLOR,
@@ -138,7 +176,10 @@ class CodeSlide(BaseSlide):
 
         # Gutter separator
         draw.line(
-            [(gutter_border_x, titlebar_y1 + CODE_BLOCK_PADDING), (gutter_border_x, block_y1 - CODE_BLOCK_PADDING)],
+            [
+                (gutter_border_x, titlebar_y1 + CODE_BLOCK_PADDING),
+                (gutter_border_x, block_y1 - CODE_BLOCK_PADDING),
+            ],
             fill=CODE_GUTTER_BORDER,
             width=1,
         )
@@ -150,12 +191,25 @@ class CodeSlide(BaseSlide):
                 break
 
             if highlighted[i]:
-                draw.rectangle([(block_x0, y - 4), (block_x1, y + row_h - 4)], fill=CODE_HIGHLIGHT_COLOR)
-                draw.line([(gutter_border_x, y - 4), (gutter_border_x, y + row_h - 4)], fill=CODE_GUTTER_BORDER, width=1)
+                draw.rectangle(
+                    [(block_x0, y - 4), (block_x1, y + row_h - 4)],
+                    fill=CODE_HIGHLIGHT_COLOR,
+                )
+                draw.line(
+                    [(gutter_border_x, y - 4), (gutter_border_x, y + row_h - 4)],
+                    fill=CODE_GUTTER_BORDER,
+                    width=1,
+                )
 
             lineno = str(i + 1)
             _, _, lw, _ = draw.textbbox((0, 0), lineno, font=gutter_font)
-            draw.text((gutter_border_x - CODE_GUTTER_PAD_RIGHT - lw, y), lineno, font=gutter_font, fill=CODE_GUTTER_COLOR)
+            lineno_color = CODE_GUTTER_HIGHLIGHT_COLOR if highlighted[i] else CODE_GUTTER_COLOR
+            draw.text(
+                (gutter_border_x - CODE_GUTTER_PAD_RIGHT - lw, y),
+                lineno,
+                font=gutter_font,
+                fill=lineno_color,
+            )
 
             x = x_text
             for ttype, value in token_row:

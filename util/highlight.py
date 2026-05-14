@@ -2,38 +2,45 @@ import importlib.resources
 
 import tree_sitter_markdown as tsmarkdown
 import tree_sitter_python as tspython
+from catppuccin import PALETTE as _CAT
 from tree_sitter import Language, Parser, Query, QueryCursor
 
+_M = _CAT.mocha.colors
+
+
+def _rgb(c) -> tuple[int, int, int]:
+    return (c.rgb.r, c.rgb.g, c.rgb.b)
+
+
 _COLORS: dict[str, tuple[int, int, int]] = {
-    "keyword": (203, 166, 247),  # mauve
-    "constant.builtin": (203, 166, 247),  # mauve   — None / True / False
-    "function": (137, 180, 250),  # blue
-    "function.method": (116, 199, 236),  # sapphire
-    "function.builtin": (249, 226, 175),  # yellow  — builtins as callables
-    "property": (116, 199, 236),  # sapphire
-    "type": (249, 226, 175),  # yellow
-    "constructor": (249, 226, 175),  # yellow  — PascalCase convention
-    "constant": (250, 179, 135),  # peach   — ALL_CAPS
-    "builtin": (249, 226, 175),  # yellow  — post-pass non-call builtins
-    "module": (180, 190, 254),  # lavender
-    "parameter": (235, 160, 172),  # maroon
-    "string": (166, 227, 161),  # green
-    "escape": (148, 226, 213),  # teal
-    "comment": (127, 132, 156),  # overlay1
-    "number": (250, 179, 135),  # peach
-    "operator": (205, 214, 244),  # text
-    "variable": (205, 214, 244),  # text
-    # markdown-specific
-    "text.title": (180, 190, 254),       # lavender — heading content
-    "text.strong": (249, 226, 175),      # yellow   — bold
-    "text.emphasis": (245, 194, 231),    # pink     — italic
-    "text.literal": (166, 227, 161),     # green    — inline code / code blocks
-    "text.uri": (137, 180, 250),         # blue     — links
-    "text.reference": (116, 199, 236),   # sapphire — link labels
-    "punctuation.special": (203, 166, 247),  # mauve — #/- markers
-    "punctuation.delimiter": (127, 132, 156),  # overlay1 — brackets / backticks
-    "string.escape": (148, 226, 213),    # teal     — backslash escapes
-    "default": (205, 214, 244),  # text
+    "keyword": _rgb(_M.mauve),
+    "constant.builtin": _rgb(_M.mauve),
+    "function": _rgb(_M.blue),
+    "function.method": _rgb(_M.sapphire),
+    "function.builtin": _rgb(_M.yellow),
+    "property": _rgb(_M.sapphire),
+    "type": _rgb(_M.yellow),
+    "constructor": _rgb(_M.yellow),
+    "constant": _rgb(_M.peach),
+    "builtin": _rgb(_M.yellow),
+    "module": _rgb(_M.lavender),
+    "parameter": _rgb(_M.maroon),
+    "string": _rgb(_M.green),
+    "escape": _rgb(_M.teal),
+    "comment": _rgb(_M.overlay1),
+    "number": _rgb(_M.peach),
+    "operator": _rgb(_M.text),
+    "variable": _rgb(_M.text),
+    "text.title": _rgb(_M.lavender),
+    "text.strong": _rgb(_M.yellow),
+    "text.emphasis": _rgb(_M.pink),
+    "text.literal": _rgb(_M.green),
+    "text.uri": _rgb(_M.blue),
+    "text.reference": _rgb(_M.sapphire),
+    "punctuation.special": _rgb(_M.mauve),
+    "punctuation.delimiter": _rgb(_M.overlay1),
+    "string.escape": _rgb(_M.teal),
+    "default": _rgb(_M.text),
 }
 
 # Ordered least → most specific; later passes overwrite earlier ones
@@ -248,7 +255,10 @@ _LANG_ALIASES: dict[str, str] = {
 _PY_LANGUAGE = Language(tspython.language())
 _MD_LANGUAGE = Language(tsmarkdown.language())
 _LANGUAGES: dict[str, Language] = {"python": _PY_LANGUAGE, "markdown": _MD_LANGUAGE}
-_PARSERS: dict[str, Parser] = {"python": Parser(_PY_LANGUAGE), "markdown": Parser(_MD_LANGUAGE)}
+_PARSERS: dict[str, Parser] = {
+    "python": Parser(_PY_LANGUAGE),
+    "markdown": Parser(_MD_LANGUAGE),
+}
 
 _compiled_queries: dict[str, Query] = {}
 
@@ -260,11 +270,7 @@ def _normalize(lang: str) -> str:
 def _load_query(lang: str) -> Query:
     pkg = _LANG_PACKAGES[lang]
     subpath = _QUERY_SUBPATHS.get(lang, "queries/highlights.scm")
-    base = (
-        importlib.resources.files(pkg)
-        .joinpath(subpath)
-        .read_text(encoding="utf-8")
-    )
+    base = importlib.resources.files(pkg).joinpath(subpath).read_text(encoding="utf-8")
     return Query(_LANGUAGES[lang], base + _CUSTOM_PATTERNS.get(lang, ""))
 
 

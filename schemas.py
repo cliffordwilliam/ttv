@@ -6,6 +6,8 @@ class SlideData:
     content: list[str] = field(default_factory=list)
     voice_line: str = ""
     duration: str = ""
+    transition_in: str = "fade"
+    transition_out: str = "fade"
 
 
 @dataclass

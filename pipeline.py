@@ -146,6 +146,8 @@ class Pipeline:
                     slide_screen_time,
                     self.video_saved_file_paths[slide_index],
                     self.voice_saved_file_paths[slide_index],
+                    self.slide_datas[slide_index].transition_in,
+                    self.slide_datas[slide_index].transition_out,
                 )
 
         else:
@@ -160,6 +162,8 @@ class Pipeline:
                     float(slide_screen_time),
                     self.video_saved_file_paths[slide_index],
                     None,
+                    self.slide_datas[slide_index].transition_in,
+                    self.slide_datas[slide_index].transition_out,
                 )
 
         return video_editor_threads.submit(video_editor_task_callback)

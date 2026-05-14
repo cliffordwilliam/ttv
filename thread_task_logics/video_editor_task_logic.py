@@ -9,10 +9,16 @@ def video_editor_task_logic(
     slide_screen_time: float,
     video_saved_file_path: Path,
     voice_saved_file_path: Path | None = None,
+    transition_in: str = "fade",
+    transition_out: str = "fade",
 ) -> None:
-    padded_slide_screen_time = PAUSE_BEFORE_S + slide_screen_time + PAUSE_AFTER_S
-    fade_out_start_time = padded_slide_screen_time - 0.5
-    audio_delay_ms = int(PAUSE_BEFORE_S * 1000)
+    cut_in = transition_in == "cut"
+    cut_out = transition_out == "cut"
+
+    before = 0.0 if cut_in else PAUSE_BEFORE_S
+    after = 0.0 if cut_out else PAUSE_AFTER_S
+    clip_duration = before + slide_screen_time + after
+    audio_delay_ms = int(before * 1000)
 
     # Build the cmd for ffmpeg.
 
@@ -31,30 +37,29 @@ def video_editor_task_logic(
     if voice_saved_file_path:
         # Input 1 is audio.
         cmd += ["-i", str(voice_saved_file_path)]
-        # Filter delay and set codec for audio.
-        cmd += [
-            "-af",
-            f"adelay={audio_delay_ms}|{audio_delay_ms}",
-            "-c:a",
-            "aac",
-        ]
+        audio_filters = []
+        if not cut_in:
+            audio_filters.append(f"adelay={audio_delay_ms}|{audio_delay_ms}")
+        # Pad silence to fill the full clip duration so audio and video tracks
+        # are the same length — prevents PTS discontinuities at concat boundaries.
+        audio_filters.append(f"apad=whole_dur={clip_duration:.3f}")
+        cmd += ["-af", ",".join(audio_filters), "-c:a", "aac"]
 
-    # Filter fade and set codec for image.
-    cmd += [
-        "-vf",
-        f"fade=in:st=0:d=0.5,fade=out:st={fade_out_start_time:.3f}:d=0.5",
-        "-c:v",
-        "libx264",
-        "-tune",
-        "stillimage",
-    ]
+    fade_filters = []
+    if not cut_in:
+        fade_filters.append("fade=in:st=0:d=0.5")
+    if not cut_out:
+        fade_filters.append(f"fade=out:st={clip_duration - 0.5:.3f}:d=0.5")
+    if fade_filters:
+        cmd += ["-vf", ",".join(fade_filters)]
+    cmd += ["-c:v", "libx264", "-tune", "stillimage"]
 
     # Set mux FPS and its duration to emit stop upstream.
     cmd += [
         "-r",
         str(FPS),
         "-t",
-        f"{padded_slide_screen_time:.3f}",
+        f"{clip_duration:.3f}",
         str(video_saved_file_path),
     ]
 

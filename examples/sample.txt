@@ -1,34 +1,132 @@
-@slide=code
-@voice_line=This slide introduces the topic.
-@duration=6
-@lang=markdown
-# Welcome to ttv
-This is the first paragraph.
-
-This is the second paragraph.
-1. Text goes in
-2. Video comes out
-3. Like a compiler
-@end
-
 @slide=image
-@voice_line=Here is the architecture diagram.
-@duration=4
-@src=examples/sample_image.png
+@voice_line=Hey there! Welcome back.
+@src=examples/happy.png
+@transition_out=cut
 @end
-
+@slide=image
+@voice_line=Today, we are learning about one of Python's most loved features: list comprehensions!
+@src=examples/neutral.png
+@transition_in=cut
+@transition_out=cut
+@end
+@slide=image
+@voice_line=Don't worry if it sounds fancy. By the end, you'll wonder how you ever lived without it.
+@src=examples/think.png
+@transition_in=cut
+@end
 @slide=code
-@voice_line=Here is the main render function.
-@duration=8
+@voice_line=First, let's look at the old way. Say we want to square every number in a list using a for loop.
 @lang=python
-def parse(path: Path) -> list[SlideData]:
-    text = path.read_text(encoding="utf-8")
-    slides: list[SlideData] = []
-    state = _State.OUTSIDE
-    slide_type: str = ""
-    slide_kwargs: dict[str, str] = {} !#
-    slide_content: list[str] = []
+numbers = [1, 2, 3, 4, 5]
+squared = []
 
-    for raw_line in text.splitlines():
-        line = raw_line.rstrip()
+for n in numbers:
+    squared.append(n ** 2) !#
+
+print(squared)
+# Output: [1, 4, 9, 16, 25]
+@end
+@slide=image
+@voice_line=It works, but that's four lines just to build a list. Python has a much cleaner way.
+@src=examples/neutral.png
+@transition_out=cut
+@end
+@slide=image
+@voice_line=Enter: list comprehensions!
+@src=examples/happy.png
+@transition_in=cut
+@end
+@slide=code
+@voice_line=Here is the exact same result, but written in a single line using a list comprehension.
+@lang=python
+numbers = [1, 2, 3, 4, 5]
+
+squared = [n ** 2 for n in numbers] !#
+
+print(squared)
+# Output: [1, 4, 9, 16, 25]
+@end
+@slide=code
+@voice_line=The general syntax is: open bracket, expression, for item in iterable, close bracket. Think of it as writing the for loop inside the list itself.
+@lang=python
+# Syntax:
+# [expression for item in iterable]
+
+# More examples:
+doubled = [n * 2 for n in numbers] !#
+# [2, 4, 6, 8, 10]
+
+words = ["hello", "world"]
+upper = [w.upper() for w in words] !#
+# ["HELLO", "WORLD"]
+@end
+@slide=image
+@voice_line=But wait, it gets even better. We can add a condition to filter items!
+@src=examples/think.png
+@transition_out=cut
+@end
+@slide=image
+@voice_line=This is called a conditional list comprehension.
+@src=examples/neutral.png
+@transition_in=cut
+@end
+@slide=code
+@voice_line=Here we only keep numbers that are even. We add an if clause at the end of the comprehension.
+@lang=python
+numbers = [1, 2, 3, 4, 5, 6, 7, 8]
+
+evens = [n for n in numbers if n % 2 == 0] !#
+
+print(evens)
+# Output: [2, 4, 6, 8]
+@end
+@slide=code
+@voice_line=You can even combine both: transform and filter in one line. Here we square only the even numbers.
+@lang=python
+numbers = [1, 2, 3, 4, 5, 6, 7, 8]
+
+squared_evens = [n ** 2 for n in numbers if n % 2 == 0] !#
+
+print(squared_evens)
+# Output: [4, 16, 36, 64]
+@end
+@slide=image
+@voice_line=Now, a word of caution. List comprehensions are great, but don't go overboard!
+@src=examples/angry.png
+@transition_out=cut
+@end
+@slide=image
+@voice_line=If your comprehension is getting too complex or hard to read, a regular for loop is perfectly fine.
+@src=examples/neutral.png
+@transition_in=cut
+@transition_out=cut
+@end
+@slide=image
+@voice_line=Readability always wins in Python.
+@src=examples/happy.png
+@transition_in=cut
+@end
+@slide=code
+@voice_line=Here is a quick summary of everything we covered today.
+@duration=8
+@lang=markdown
+# List Comprehensions — Quick Reference
+
+## Basic syntax
+[expression for item in iterable]
+
+## With a condition
+[expression for item in iterable if condition]
+
+## Examples
+- squares  : [n ** 2 for n in nums]
+- evens    : [n for n in nums if n % 2 == 0]
+- combined : [n ** 2 for n in nums if n % 2 == 0]
+
+## Rule of thumb
+Keep it readable. If it's too long, use a for loop!
+@end
+@slide=image
+@voice_line=And that's list comprehensions! Short, expressive, and very Pythonic. See you in the next one!
+@src=examples/happy.png
 @end

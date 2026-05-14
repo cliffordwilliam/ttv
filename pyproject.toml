@@ -3,6 +3,7 @@ name = "ttv"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
+    "catppuccin>=2.5.0",
     "pillow>=12.2.0",
     "tree-sitter>=0.22",
     "tree-sitter-markdown>=0.5.1",
