@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-from config import FPS, PAUSE_AFTER_S, PAUSE_BEFORE_S
+from config import FPS, PAUSE_AFTER_S, PAUSE_BEFORE_S, VOICE_FADE_S
 
 
 def video_editor_task_logic(
@@ -38,6 +38,9 @@ def video_editor_task_logic(
         # Input 1 is audio.
         cmd += ["-i", str(voice_saved_file_path)]
         audio_filters = []
+        # Fade in/out on the raw decoded signal to eliminate DC offset thumps.
+        audio_filters.append(f"afade=t=in:st=0:d={VOICE_FADE_S}")
+        audio_filters.append(f"afade=t=out:st={max(0.0, slide_screen_time - VOICE_FADE_S):.3f}:d={VOICE_FADE_S}")
         if not cut_in:
             audio_filters.append(f"adelay={audio_delay_ms}|{audio_delay_ms}")
         # Pad silence to fill the full clip duration so audio and video tracks

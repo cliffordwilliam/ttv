@@ -18,6 +18,7 @@ class ImageData(SlideData):
 @dataclass
 class CodeData(SlideData):
     lang: str = "text"
+    cam: str = ""
 
 
 REGISTRY: dict[str, type[SlideData]] = {

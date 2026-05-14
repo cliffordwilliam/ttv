@@ -1,3 +1,22 @@
+# Highlighting runs in two passes:
+#   1. AST query — tree-sitter labels each byte with a capture name via highlights.scm
+#      + any _CUSTOM_PATTERNS. _PRIORITY controls which label wins when a byte matches
+#      multiple captures (later = more specific = wins).
+#   2. Builtin upgrade — tokens still labeled "variable" that match _BUILTINS get
+#      upgraded to "builtin". Needed because builtins in type annotation position
+#      (e.g. `-> list[Foo]`) sit outside call expressions and the query can't reach them.
+#
+# Adding a language:
+#   1. uv add tree-sitter-<lang>
+#   2. import tree_sitter_<lang> as ts<lang>
+#   3. Add entries to _LANG_PACKAGES, _LANGUAGES, _PARSERS (and _QUERY_SUBPATHS /
+#      _LANG_ALIASES / _CUSTOM_PATTERNS if needed)
+#
+# Wrong color on a token? Add a temporary print inside tokenize() before the return:
+#   for label, value in tokens:
+#       if value.strip(): print(f"{label:<20} {value!r}")
+# Then either add the capture name to _COLORS or move it in _PRIORITY.
+
 import importlib.resources
 
 import tree_sitter_markdown as tsmarkdown

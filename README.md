@@ -2,33 +2,70 @@
 
 Takes a structured `.txt` file and compiles it into an `.mp4`. Text in, video out.
 
+## Installation
+
+```bash
+uv tool install git+https://github.com/cliffordwilliam/ttv
+```
+
+This installs `ttv` as a global command. To update:
+
+```bash
+uv tool upgrade ttv
+```
+
 ## External dependencies
 
 These must be installed and available on your PATH before running ttv:
 
 - **FFmpeg** — video encoding and concatenation. Install via your package manager (e.g. `sudo pacman -S ffmpeg`).
+- **Piper** — required only for local dev voice. Installed automatically as a Python dependency via `uv sync`.
 
 ## Voice support
 
-Voice is optional. ttv has no built-in TTS — it talks to a [Kokoro FastAPI](https://github.com/remsky/Kokoro-FastAPI) instance over HTTP.
+Voice is optional. ttv supports two providers:
 
-**Without voice** — each slide must declare its screen time explicitly otherwise it defaults to 0 seconds:
+| Provider | Use case | Requires |
+|---|---|---|
+| **Piper** | Local dev — free, no network, no credits | `PIPER_MODEL` env var |
+| **ElevenLabs** | Final render — Yuki's voice | `ELEVEN_LABS_API_KEY` + `VOICE_ID` env vars |
+
+If neither is configured, each slide must declare its screen time explicitly:
 
 ```
 @duration=5
 ```
 
-**With voice** — point ttv at a running Kokoro container via the `KOKORO_URL` env var:
+When a voice provider is active, slide duration is derived from the synthesized audio and `@duration` is ignored.
+
+Provider priority: **Piper → ElevenLabs → silent**.
+
+### Piper (local dev)
+
+Download a voice model once and point `PIPER_MODEL` at the `.onnx` file:
 
 ```bash
-KOKORO_URL=http://localhost:8880 uv run python ttv.py my_video.txt
+# example — downloads en_US-lessac-high into voices/
+curl -L https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/high/en_US-lessac-high.onnx -o voices/en_US-lessac-high.onnx
+curl -L https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/high/en_US-lessac-high.onnx.json -o voices/en_US-lessac-high.onnx.json
 ```
 
-When Kokoro is active, slide duration is derived from the synthesized audio and `@duration` is ignored. When it is not, `@duration` is used as-is.
+```bash
+PIPER_MODEL=voices/en_US-lessac-high.onnx ttv my_video.txt
+```
 
-## Syntax highlighting
+### ElevenLabs (final render)
 
-Code slides use [tree-sitter](https://tree-sitter.github.io/) for structural syntax highlighting. See [docs/highlight.md](docs/highlight.md) for architecture, adding languages, and tuning colors.
+Add your credentials to `.env` (see `.env.example`):
+
+```text
+ELEVEN_LABS_API_KEY=your_key_here
+VOICE_ID=your_voice_id_here
+```
+
+```bash
+ttv my_video.txt
+```
 
 ## Python dependencies
 
@@ -37,28 +74,12 @@ Managed via `uv`. Run `uv sync` to install.
 ## Usage
 
 ```bash
-uv run python ttv.py my_video.txt
-```
+# silent
+ttv my_video.txt
 
-```bash
-KOKORO_URL=http://localhost:8880 uv run python ttv.py my_video.txt
-```
+# local dev voice
+PIPER_MODEL=voices/en_US-lessac-high.onnx ttv my_video.txt
 
-## Provisioning Kokoro
-
-You can provision yourself with Kokoro:
-
-```bash
-docker run \
-    --name kokoro \
-    --restart=always \
-    -v kokoro-data:/var/lib/kokoro \
-    -p 8880:8880 \
-    -d hwdsl2/kokoro-server
-```
-
-Do not forget to make sure you have this in your .env:
-
-```text
-KOKORO_URL=http://localhost:8880
+# final render (ttv auto-loads .env from current directory)
+ttv my_video.txt
 ```

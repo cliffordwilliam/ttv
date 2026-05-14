@@ -1,22 +1,23 @@
 @slide=image
 @voice_line=Hey there! Welcome back.
-@src=examples/happy.png
+@src=/home/clif/Downloads/happy.png
 @transition_out=cut
 @end
 @slide=image
 @voice_line=Today, we are learning about one of Python's most loved features: list comprehensions!
-@src=examples/neutral.png
+@src=/home/clif/Downloads/neutral.png
 @transition_in=cut
 @transition_out=cut
 @end
 @slide=image
 @voice_line=Don't worry if it sounds fancy. By the end, you'll wonder how you ever lived without it.
-@src=examples/think.png
+@src=/home/clif/Downloads/thinking.png
 @transition_in=cut
 @end
 @slide=code
 @voice_line=First, let's look at the old way. Say we want to square every number in a list using a for loop.
 @lang=python
+@cam=/home/clif/Downloads/neutral_sm.png
 numbers = [1, 2, 3, 4, 5]
 squared = []
 
@@ -28,17 +29,18 @@ print(squared)
 @end
 @slide=image
 @voice_line=It works, but that's four lines just to build a list. Python has a much cleaner way.
-@src=examples/neutral.png
+@src=/home/clif/Downloads/neutral.png
 @transition_out=cut
 @end
 @slide=image
 @voice_line=Enter: list comprehensions!
-@src=examples/happy.png
+@src=/home/clif/Downloads/happy.png
 @transition_in=cut
 @end
 @slide=code
 @voice_line=Here is the exact same result, but written in a single line using a list comprehension.
 @lang=python
+@cam=/home/clif/Downloads/happy_sm.png
 numbers = [1, 2, 3, 4, 5]
 
 squared = [n ** 2 for n in numbers] !#
@@ -49,6 +51,7 @@ print(squared)
 @slide=code
 @voice_line=The general syntax is: open bracket, expression, for item in iterable, close bracket. Think of it as writing the for loop inside the list itself.
 @lang=python
+@cam=/home/clif/Downloads/pointing_up_sm.png
 # Syntax:
 # [expression for item in iterable]
 
@@ -62,17 +65,18 @@ upper = [w.upper() for w in words] !#
 @end
 @slide=image
 @voice_line=But wait, it gets even better. We can add a condition to filter items!
-@src=examples/think.png
+@src=/home/clif/Downloads/thinking.png
 @transition_out=cut
 @end
 @slide=image
 @voice_line=This is called a conditional list comprehension.
-@src=examples/neutral.png
+@src=/home/clif/Downloads/neutral.png
 @transition_in=cut
 @end
 @slide=code
 @voice_line=Here we only keep numbers that are even. We add an if clause at the end of the comprehension.
 @lang=python
+@cam=/home/clif/Downloads/thinking_sm.png
 numbers = [1, 2, 3, 4, 5, 6, 7, 8]
 
 evens = [n for n in numbers if n % 2 == 0] !#
@@ -83,6 +87,7 @@ print(evens)
 @slide=code
 @voice_line=You can even combine both: transform and filter in one line. Here we square only the even numbers.
 @lang=python
+@cam=/home/clif/Downloads/happy_sm.png
 numbers = [1, 2, 3, 4, 5, 6, 7, 8]
 
 squared_evens = [n ** 2 for n in numbers if n % 2 == 0] !#
@@ -92,24 +97,25 @@ print(squared_evens)
 @end
 @slide=image
 @voice_line=Now, a word of caution. List comprehensions are great, but don't go overboard!
-@src=examples/angry.png
+@src=/home/clif/Downloads/serious.png
 @transition_out=cut
 @end
 @slide=image
 @voice_line=If your comprehension is getting too complex or hard to read, a regular for loop is perfectly fine.
-@src=examples/neutral.png
+@src=/home/clif/Downloads/neutral.png
 @transition_in=cut
 @transition_out=cut
 @end
 @slide=image
 @voice_line=Readability always wins in Python.
-@src=examples/happy.png
+@src=/home/clif/Downloads/happy.png
 @transition_in=cut
 @end
 @slide=code
 @voice_line=Here is a quick summary of everything we covered today.
 @duration=8
 @lang=markdown
+@cam=/home/clif/Downloads/neutral_sm.png
 # List Comprehensions — Quick Reference
 
 ## Basic syntax
@@ -128,5 +134,5 @@ Keep it readable. If it's too long, use a for loop!
 @end
 @slide=image
 @voice_line=And that's list comprehensions! Short, expressive, and very Pythonic. See you in the next one!
-@src=examples/happy.png
+@src=/home/clif/Downloads/happy.png
 @end

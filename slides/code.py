@@ -1,7 +1,12 @@
 from catppuccin import PALETTE as _CAT
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from config import (
+    CAM_DIAMETER,
+    CAM_PAD,
+    CAM_SHADOW_ALPHA,
+    CAM_SHADOW_BLUR,
+    CAM_SHADOW_OFFSET,
     CODE_BLOCK_PADDING,
     CODE_CORNER_RADIUS,
     CODE_GUTTER_PAD_RIGHT,
@@ -15,11 +20,13 @@ from config import (
 from schemas import CodeData
 from slides.base import BaseSlide
 from util import highlight
-from util.fonts import load_font
 
 HIGHLIGHT_MARKER = "!#"
 
 _M = _CAT.mocha.colors
+
+_FONT = ImageFont.truetype(FONT_MONO, CODE_SIZE_BODY)
+_TITLEBAR_FONT = ImageFont.truetype(FONT_MONO, int(CODE_SIZE_BODY * 11.5 / 13.5))
 
 
 def _rgb(c) -> tuple[int, int, int]:
@@ -66,6 +73,34 @@ def _rounded_rect(
     draw.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill)
 
 
+def _apply_cam_overlay(img: Image.Image, cam_path: str) -> Image.Image:
+    cam = Image.open(cam_path).convert("RGBA")
+    w, h = cam.size
+    side = min(w, h)
+    cam = cam.crop(((w - side) // 2, (h - side) // 2, (w + side) // 2, (h + side) // 2))
+    cam = cam.resize((CAM_DIAMETER, CAM_DIAMETER), Image.Resampling.LANCZOS)
+
+    mask = Image.new("L", (CAM_DIAMETER, CAM_DIAMETER), 0)
+    ImageDraw.Draw(mask).ellipse((0, 0, CAM_DIAMETER, CAM_DIAMETER), fill=255)
+    cam.putalpha(mask)
+
+    canvas_w, canvas_h = RESOLUTION
+    x = canvas_w - CAM_DIAMETER - CAM_PAD
+    y = canvas_h - CAM_DIAMETER - CAM_PAD
+
+    shadow = Image.new("RGBA", RESOLUTION, (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).ellipse(
+        (x + CAM_SHADOW_OFFSET, y + CAM_SHADOW_OFFSET,
+         x + CAM_DIAMETER + CAM_SHADOW_OFFSET, y + CAM_DIAMETER + CAM_SHADOW_OFFSET),
+        fill=(0, 0, 0, CAM_SHADOW_ALPHA),
+    )
+    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=CAM_SHADOW_BLUR))
+
+    out = Image.alpha_composite(img.convert("RGBA"), shadow)
+    out.paste(cam, (x, y), cam)
+    return out.convert("RGB")
+
+
 class CodeSlide(BaseSlide):
     def __init__(self, data: CodeData):
         super().__init__(data)
@@ -75,12 +110,6 @@ class CodeSlide(BaseSlide):
         img = self._blank_canvas()
 
         lang = self.data.lang
-        font = load_font(FONT_MONO, CODE_SIZE_BODY)
-        gutter_font = load_font(FONT_MONO, CODE_SIZE_BODY)
-        titlebar_font = load_font(
-            FONT_MONO, int(CODE_SIZE_BODY * 11.5 / 13.5)
-        )  # ref 11.5/13.5 ratio
-
         raw_lines = self.data.content
         highlighted = [line.endswith(HIGHLIGHT_MARKER) for line in raw_lines]
         clean_lines = [
@@ -94,9 +123,9 @@ class CodeSlide(BaseSlide):
 
         # Measure layout before compositing
         _tmp = ImageDraw.Draw(img)
-        _, _, _, line_h = _tmp.textbbox((0, 0), "Ag", font=font)
+        _, _, _, line_h = _tmp.textbbox((0, 0), "Ag", font=_FONT)
         row_h = line_h + CODE_LINE_GAP
-        _, _, char_w, _ = _tmp.textbbox((0, 0), "0", font=gutter_font)
+        _, _, char_w, _ = _tmp.textbbox((0, 0), "0", font=_FONT)
         gutter_digits = len(str(len(token_lines)))
         gutter_width = char_w * gutter_digits + CODE_GUTTER_PAD_RIGHT
 
@@ -162,7 +191,7 @@ class CodeSlide(BaseSlide):
 
         # Editor name label (right-aligned)
         label = "Phantom Editor"
-        lx0, ly0, lx1, ly1 = draw.textbbox((0, 0), label, font=titlebar_font)
+        lx0, ly0, lx1, ly1 = draw.textbbox((0, 0), label, font=_TITLEBAR_FONT)
         label_h = ly1 - ly0
         draw.text(
             (
@@ -170,7 +199,7 @@ class CodeSlide(BaseSlide):
                 block_y0 + (CODE_TITLEBAR_HEIGHT - label_h) // 2 - ly0,
             ),
             label,
-            font=titlebar_font,
+            font=_TITLEBAR_FONT,
             fill=CODE_GUTTER_COLOR,
         )
 
@@ -202,22 +231,25 @@ class CodeSlide(BaseSlide):
                 )
 
             lineno = str(i + 1)
-            _, _, lw, _ = draw.textbbox((0, 0), lineno, font=gutter_font)
+            _, _, lw, _ = draw.textbbox((0, 0), lineno, font=_FONT)
             lineno_color = CODE_GUTTER_HIGHLIGHT_COLOR if highlighted[i] else CODE_GUTTER_COLOR
             draw.text(
                 (gutter_border_x - CODE_GUTTER_PAD_RIGHT - lw, y),
                 lineno,
-                font=gutter_font,
+                font=_FONT,
                 fill=lineno_color,
             )
 
             x = x_text
             for ttype, value in token_row:
                 color = highlight.token_color(ttype)
-                draw.text((x, y), value, font=font, fill=color)
-                _, _, tw, _ = draw.textbbox((0, 0), value, font=font)
+                draw.text((x, y), value, font=_FONT, fill=color)
+                _, _, tw, _ = draw.textbbox((0, 0), value, font=_FONT)
                 x += tw
 
             y += row_h
+
+        if self.data.cam:
+            img = _apply_cam_overlay(img, self.data.cam)
 
         return img

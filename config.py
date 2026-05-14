@@ -1,3 +1,5 @@
+from pathlib import Path
+
 PAUSE_BEFORE_S = 0.6
 PAUSE_AFTER_S = 0.6
 RESOLUTION = (1920, 1080)
@@ -17,7 +19,24 @@ EMPTY_BAR_CHARACTER = "░"
 BACKGROUND_COLOR = (18, 18, 18)
 
 # --- Fonts ---
-FONT_MONO = "/home/clif/.local/share/fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"
+FONT_MONO = str(Path(__file__).parent / "fonts" / "JetBrainsMono-Regular.ttf")
+
+# --- ElevenLabs ---
+VOICE_MAX_CONCURRENCY = 2
+VOICE_FADE_S = 0.02  # 20ms fade-in/out to eliminate DC offset thumps
+
+# --- ElevenLabs voice settings ---
+VOICE_STABILITY = 0.75
+VOICE_SIMILARITY_BOOST = 0.82
+VOICE_STYLE = 0.20
+VOICE_SPEED = 0.88
+
+# --- Cam overlay ---
+CAM_DIAMETER = int(RESOLUTION[1] * 0.44)  # ~475px, almost half the screen height
+CAM_PAD = 48
+CAM_SHADOW_OFFSET = 16
+CAM_SHADOW_BLUR = 24
+CAM_SHADOW_ALPHA = 180
 
 # --- Code slide ---
 CODE_SIZE_BODY = 32

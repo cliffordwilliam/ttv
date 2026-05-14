@@ -12,7 +12,7 @@ class _State(Enum):
 
 
 def parse(text_file_path: Path) -> list[SlideData]:
-    # Decode text using utf-8 and store it here.
+    text_file_dir = text_file_path.parent
     text = text_file_path.read_text(encoding="utf-8")
 
     # Setup state machine states
@@ -56,10 +56,9 @@ def parse(text_file_path: Path) -> list[SlideData]:
                 )
             # Handle inside body.
             elif line.startswith(DIRECTIVE):
-                # Handle this slide key value pairs!
                 key, _, value = line[1:].partition("=")
                 _validate_slide_key(key, slide_type)
-                _validate_image_path_exists(key, value)
+                value = _resolve_image_path(key, value, text_file_dir)
                 slide_kwargs[key] = value
             else:
                 # Handle this slide content!
@@ -73,11 +72,13 @@ def parse(text_file_path: Path) -> list[SlideData]:
     return slides
 
 
-def _validate_image_path_exists(given_slide_key: str, given_slide_value: str):
-    if given_slide_key == "src":
-        image_path_string = given_slide_value
-        if not Path(image_path_string).exists():
-            raise ValueError(f"Image not found: {image_path_string}")
+def _resolve_image_path(given_slide_key: str, given_slide_value: str, base_dir: Path) -> str:
+    if given_slide_key in ("src", "cam"):
+        resolved = (base_dir / given_slide_value).resolve()
+        if not resolved.exists():
+            raise ValueError(f"Image not found: {given_slide_value}")
+        return str(resolved)
+    return given_slide_value
 
 
 def _validate_slide_type(given_slide_type: str):
